@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "智能面试官 — Mobile App 交互原型",
+  "entry": "ai-interviewer-prototype.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-05-08T09:51:20.223Z",
+  "updatedAt": "2026-05-08T09:51:20.266Z",
+  "sourceSkillId": "blog-post",
+  "designSystemId": "default",
+  "metadata": {
+    "identifier": "ai-interviewer-prototype",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}

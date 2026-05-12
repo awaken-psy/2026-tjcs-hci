@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: oklch(98% 0.005 250);
+    --surface: oklch(100% 0 0);
+    --fg: oklch(22% 0.02 240);
+    --muted: oklch(50% 0.018 240);
+    --border: oklch(90% 0.008 240);
+    --accent: oklch(55% 0.16 145);
+
+    --accent-soft: color-mix(in oklch, var(--accent) 12%, transparent);
+    --fg-soft: color-mix(in oklch, var(--fg) 6%, transparent);
+
+    --font-display: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-body: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+
+    --radius-card: 14px;
+    --radius-pill: 999px;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html, body, #root {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+  }
+
+  body {
+    background: radial-gradient(60% 80% at 50% 0%, color-mix(in oklch, var(--accent) 5%, var(--bg)) 0%, var(--bg) 60%);
+    color: var(--fg);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+  }
+}
