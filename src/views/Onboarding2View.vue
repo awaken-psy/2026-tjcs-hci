@@ -37,6 +37,7 @@ function back() {
       <AppButton @click="start">开始体验</AppButton>
       <AppButton variant="ghost" @click="back">返回</AppButton>
     </div>
+    </div>
   </ScreenView>
 </template>
 

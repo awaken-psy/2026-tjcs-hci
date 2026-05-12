@@ -73,6 +73,7 @@ function startInterview() {
     <div style="margin-top: auto; padding-top: 20px;">
       <AppButton @click="startInterview">开始面试</AppButton>
     </div>
+    </div>
   </ScreenView>
 </template>
 

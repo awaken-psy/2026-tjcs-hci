@@ -66,6 +66,7 @@ function confirm() {
         确认选择 · {{ selectedJob }}
       </AppButton>
     </div>
+    </div>
   </ScreenView>
 </template>
 

@@ -60,6 +60,7 @@ function getCode() {
         </button>
       </div>
     </div>
+    </div>
   </ScreenView>
 </template>
 

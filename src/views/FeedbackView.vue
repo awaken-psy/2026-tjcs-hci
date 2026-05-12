@@ -59,6 +59,7 @@ function retry() {
       <AppButton @click="goHome">回到首页</AppButton>
       <AppButton variant="secondary" @click="retry">再来一次</AppButton>
     </div>
+    </div>
   </ScreenView>
 </template>
 

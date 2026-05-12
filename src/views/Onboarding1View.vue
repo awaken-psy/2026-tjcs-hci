@@ -37,6 +37,7 @@ function skip() {
       <AppButton @click="next">下一步</AppButton>
       <AppButton variant="ghost" @click="skip">跳过</AppButton>
     </div>
+    </div>
   </ScreenView>
 </template>
 
