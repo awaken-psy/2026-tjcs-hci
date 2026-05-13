@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import BackButton from '@/components/ui/BackButton.vue'
+import IconButton from '@/components/ui/IconButton.vue'
+import SearchIcon from '@/components/icons/SearchIcon.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import JobCard from '@/components/ui/JobCard.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -42,7 +44,12 @@ function confirm() {
 <template>
   <ScreenView>
     <div class="pad stack" style="padding-top: 12px; gap: 20px; min-height: 100%;">
-    <BackButton @click="goBack" />
+    <div class="top-row">
+      <BackButton @click="goBack" />
+      <IconButton aria-label="搜索" @click="router.push('/search')">
+        <SearchIcon />
+      </IconButton>
+    </div>
 
     <h1 class="h2">选择面试岗位</h1>
     <p class="desc">选择你要练习的岗位方向，我们将匹配对应题库。</p>
@@ -105,6 +112,12 @@ function confirm() {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .grid-full {

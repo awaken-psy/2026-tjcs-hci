@@ -33,6 +33,7 @@ import CommunityView from './views/CommunityView.vue'
 import PostExperienceView from './views/PostExperienceView.vue'
 import ExperienceDetailView from './views/ExperienceDetailView.vue'
 import HelpCenterView from './views/HelpCenterView.vue'
+import SearchView from './views/SearchView.vue'
 
 const routes = [
   { path: '/', name: 'Splash', component: SplashView },
@@ -64,6 +65,7 @@ const routes = [
   { path: '/post-experience', name: 'PostExperience', component: PostExperienceView },
   { path: '/community/:id', name: 'ExperienceDetail', component: ExperienceDetailView },
   { path: '/help-center', name: 'HelpCenter', component: HelpCenterView },
+  { path: '/search', name: 'Search', component: SearchView },
 ]
 
 const router = createRouter({

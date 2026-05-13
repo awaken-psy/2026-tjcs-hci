@@ -8,6 +8,7 @@ import IconButton from '@/components/ui/IconButton.vue'
 import Pill from '@/components/ui/Pill.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import BellIcon from '@/components/icons/BellIcon.vue'
+import SearchIcon from '@/components/icons/SearchIcon.vue'
 import PlayIcon from '@/components/icons/PlayIcon.vue'
 import CodeIcon from '@/components/icons/CodeIcon.vue'
 import PenIcon from '@/components/icons/PenIcon.vue'
@@ -32,9 +33,14 @@ function goToNotifications() {
   <AppLayout>
     <AppHeader greeting="周四 · 5月8日" title="早上好，张明">
       <template #action>
-        <IconButton aria-label="通知" @click="goToNotifications">
-          <BellIcon />
-        </IconButton>
+        <div class="action-group">
+          <IconButton aria-label="搜索" @click="router.push('/search')">
+            <SearchIcon />
+          </IconButton>
+          <IconButton aria-label="通知" @click="goToNotifications">
+            <BellIcon />
+          </IconButton>
+        </div>
       </template>
     </AppHeader>
 
@@ -98,7 +104,7 @@ function goToNotifications() {
     </section>
 
     <section class="pad" data-od-id="cta" style="margin-top: 14px;">
-      <AppButton @click="goToJobDetail">
+      <AppButton @click="goToJobs">
         <PlayIcon class="btn-icon" />
         开始新面试
       </AppButton>
@@ -146,6 +152,12 @@ function goToNotifications() {
 </template>
 
 <style scoped>
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .pad {
   padding-inline: 20px;
 }
