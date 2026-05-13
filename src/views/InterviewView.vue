@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onUnmounted, nextTick } from 'vue'
+import { ref, onUnmounted, nextTick, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { ChatMessage } from '@/types'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -7,6 +7,11 @@ import ChatBubble from '@/components/ui/ChatBubble.vue'
 import MicIcon from '@/components/icons/MicIcon.vue'
 
 const router = useRouter()
+
+// ── Feature Detection ──
+const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+const hasRecognition = !!SpeechRecognition
+const hasSynthesis = 'speechSynthesis' in window
 
 // ── Chat State ──
 const messages = ref<ChatMessage[]>([
@@ -35,27 +40,156 @@ function getNextAiMessage(): string {
   return msg
 }
 
-// ── Voice Simulation ──
-type VoiceState = 'idle' | 'recording' | 'transcribing'
+// ── Voice State ──
+type VoiceState = 'idle' | 'recording' | 'transcribing' | 'speaking'
 const voiceState = ref<VoiceState>('idle')
 
-// Simulated transcript that appears character by character
-const liveTranscript = ref('')
+// ── Speech Recognition ──
+let recognition: InstanceType<typeof SpeechRecognition> | null = null
 
-// Predefined responses that the "voice recognition" will produce
-const simulatedResponses = [
-  '在实习期间，我们遇到了一个首屏加载超过 5 秒的性能问题，我通过代码分割和懒加载将时间降到了 1.2 秒。',
-  '我认为 Code Review 是保证代码质量的重要环节，在之前的团队中我们采用轮换制，每次 PR 至少两人审核。',
-  '如果重新设计，我会优先考虑微前端架构，因为当时单体应用已经严重影响了团队的独立部署效率。',
-  '我更看重工作效率而非工作时长，合理的时间管理通常比加班更有效，但紧急情况下我愿意配合团队。',
-  '最难调试的 Bug 是一个仅在 iOS Safari 上出现的滚动穿透问题，最终发现是 overscroll-behavior 未设置。',
-  '我认为 AI 辅助开发会成为标配，但前端工程师的核心价值在于用户体验设计和架构能力。',
-  '我通常先看官方文档的 Getting Started，然后动手写一个小项目，遇到问题再深入源码或社区讨论。',
-]
-let responseIndex = 0
+function initRecognition() {
+  if (!hasRecognition) return null
+  const rec = new SpeechRecognition()
+  rec.lang = 'zh-CN'
+  rec.continuous = true
+  rec.interimResults = true
 
-let recordingTimer: ReturnType<typeof setTimeout> | null = null
-let transcribeTimer: ReturnType<typeof setInterval> | null = null
+  rec.onresult = (e: any) => {
+    let interim = ''
+    let final = ''
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      const transcript = e.results[i][0].transcript
+      if (e.results[i].isFinal) {
+        final += transcript
+      } else {
+        interim += transcript
+      }
+    }
+    // Update the last user message with live transcript
+    if (final) {
+      recognitionFinalText += final
+    }
+    const displayText = recognitionFinalText + interim
+    if (messages.value.length > 0) {
+      messages.value[messages.value.length - 1].content = displayText
+    }
+    scrollToBottom()
+  }
+
+  rec.onerror = (e: any) => {
+    console.warn('SpeechRecognition error:', e.error)
+    if (e.error === 'no-speech' || e.error === 'aborted') {
+      stopRecording()
+    }
+  }
+
+  rec.onend = () => {
+    // Auto-stopped (silence timeout or manual) → finalize
+    if (voiceState.value === 'recording') {
+      finalizeRecognition()
+    }
+  }
+
+  return rec
+}
+
+let recognitionFinalText = ''
+
+function startRecording() {
+  if (!hasRecognition) return
+  recognitionFinalText = ''
+  messages.value.push({ role: 'user', content: '' })
+  scrollToBottom()
+
+  recognition = initRecognition()
+  recognition!.start()
+  voiceState.value = 'recording'
+}
+
+function stopRecording() {
+  if (recognition) {
+    recognition.stop()
+  }
+  finalizeRecognition()
+}
+
+function finalizeRecognition() {
+  voiceState.value = 'idle'
+  // Trim the last message: remove if empty
+  const last = messages.value[messages.value.length - 1]
+  if (last && last.role === 'user' && !last.content.trim()) {
+    messages.value.pop()
+    return
+  }
+  // AI responds after a short delay
+  setTimeout(() => {
+    const aiMsg = getNextAiMessage()
+    messages.value.push({ role: 'ai', content: aiMsg })
+    scrollToBottom()
+    // Auto-speak the AI response
+    speakText(aiMsg)
+  }, 600)
+}
+
+// ── Speech Synthesis (TTS) ──
+let currentUtterance: SpeechSynthesisUtterance | null = null
+
+function speakText(text: string) {
+  if (!hasSynthesis) return
+  // Cancel any ongoing speech
+  speechSynthesis.cancel()
+
+  voiceState.value = 'speaking'
+
+  const utterance = new SpeechSynthesisUtterance(text)
+  utterance.lang = 'zh-CN'
+  utterance.rate = 1.05
+  utterance.pitch = 1.0
+
+  // Try to pick a Chinese voice
+  const voices = speechSynthesis.getVoices()
+  const zhVoice = voices.find(v => v.lang.startsWith('zh'))
+  if (zhVoice) utterance.voice = zhVoice
+
+  utterance.onend = () => {
+    voiceState.value = 'idle'
+    currentUtterance = null
+  }
+
+  utterance.onerror = () => {
+    voiceState.value = 'idle'
+    currentUtterance = null
+  }
+
+  currentUtterance = utterance
+  speechSynthesis.speak(utterance)
+}
+
+function stopSpeaking() {
+  speechSynthesis.cancel()
+  voiceState.value = 'idle'
+  currentUtterance = null
+}
+
+// ── UI Actions ──
+function toggleVoice() {
+  if (voiceState.value === 'speaking') {
+    stopSpeaking()
+    return
+  }
+  if (voiceState.value === 'idle') {
+    startRecording()
+  } else if (voiceState.value === 'recording') {
+    stopRecording()
+  }
+  // transcribing state → ignore
+}
+
+function endInterview() {
+  speechSynthesis.cancel()
+  if (recognition) recognition.abort()
+  router.push('/feedback')
+}
 
 function scrollToBottom() {
   nextTick(() => {
@@ -65,74 +199,18 @@ function scrollToBottom() {
   })
 }
 
-function startRecording() {
-  voiceState.value = 'recording'
-  // Simulate recording for 2-3 seconds, then auto-transcribe
-  const duration = 2000 + Math.random() * 1000
-  recordingTimer = setTimeout(() => {
-    startTranscription()
-  }, duration)
-}
-
-function startTranscription() {
-  voiceState.value = 'transcribing'
-  const fullText = simulatedResponses[responseIndex % simulatedResponses.length]
-  responseIndex++
-
-  liveTranscript.value = ''
-  let charIdx = 0
-
-  // Add a temporary "transcribing" bubble
-  messages.value.push({ role: 'user', content: '' })
-  scrollToBottom()
-
-  transcribeTimer = setInterval(() => {
-    if (charIdx < fullText.length) {
-      // Add 1-3 chars at a time for natural feel
-      const chunk = Math.min(1 + Math.floor(Math.random() * 3), fullText.length - charIdx)
-      liveTranscript.value += fullText.slice(charIdx, charIdx + chunk)
-      charIdx += chunk
-
-      // Update the last message
-      messages.value[messages.value.length - 1].content = liveTranscript.value
-      scrollToBottom()
-    } else {
-      // Transcription complete
-      clearInterval(transcribeTimer!)
-      transcribeTimer = null
-      liveTranscript.value = ''
-      voiceState.value = 'idle'
-
-      // AI responds after a short delay
-      setTimeout(() => {
-        messages.value.push({ role: 'ai', content: getNextAiMessage() })
-        scrollToBottom()
-      }, 800)
-    }
-  }, 50)
-}
-
-function toggleVoice() {
-  if (voiceState.value === 'idle') {
-    startRecording()
-  } else if (voiceState.value === 'recording') {
-    // Manual stop recording → start transcription
-    if (recordingTimer) {
-      clearTimeout(recordingTimer)
-      recordingTimer = null
-    }
-    startTranscription()
+// ── Lifecycle ──
+onMounted(() => {
+  // Warm up voice list (some browsers load voices async)
+  if (hasSynthesis) {
+    speechSynthesis.getVoices()
+    speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
   }
-  // If transcribing, ignore taps
-}
-
-function endInterview() {
-  router.push('/feedback')
-}
+})
 
 onUnmounted(() => {
-  if (recordingTimer) clearTimeout(recordingTimer)
-  if (transcribeTimer) clearInterval(transcribeTimer)
+  speechSynthesis.cancel()
+  if (recognition) recognition.abort()
 })
 </script>
 
@@ -150,7 +228,8 @@ onUnmounted(() => {
       <template v-for="(msg, i) in messages" :key="i">
         <ChatBubble :role="msg.role">
           {{ msg.content }}
-          <span v-if="msg.role === 'user' && i === messages.length - 1 && voiceState === 'transcribing'" class="cursor"></span>
+          <span v-if="msg.role === 'user' && i === messages.length - 1 && voiceState === 'recording'" class="cursor"></span>
+          <span v-if="msg.role === 'ai' && i === messages.length - 1 && voiceState === 'speaking'" class="speaking-indicator">🔊</span>
         </ChatBubble>
       </template>
     </div>
@@ -160,15 +239,22 @@ onUnmounted(() => {
         <AppButton variant="secondary" style="flex: 1;" @click="endInterview">结束面试</AppButton>
         <button
           :class="['voice-btn', voiceState]"
-          :aria-label="voiceState === 'idle' ? '语音回答' : '停止录音'"
+          :aria-label="voiceState === 'idle' ? '语音回答' : voiceState === 'recording' ? '停止录音' : voiceState === 'speaking' ? '停止朗读' : '处理中'"
           @click="toggleVoice"
         >
-          <MicIcon class="mic-icon" />
+          <MicIcon v-if="voiceState !== 'speaking'" class="mic-icon" />
+          <svg v-else class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
           <span v-if="voiceState === 'recording'" class="voice-ring"></span>
         </button>
       </div>
-      <p v-if="voiceState === 'recording'" class="hint">正在录音，点击停止...</p>
-      <p v-else-if="voiceState === 'transcribing'" class="hint">语音识别中...</p>
+      <p v-if="!hasRecognition" class="hint warn">当前浏览器不支持语音识别，请使用 Chrome</p>
+      <p v-else-if="voiceState === 'recording'" class="hint">正在聆听，点击停止...</p>
+      <p v-else-if="voiceState === 'transcribing'" class="hint">识别中...</p>
+      <p v-else-if="voiceState === 'speaking'" class="hint">AI 正在朗读，点击可停止</p>
       <p v-else class="hint">点击麦克风开始语音回答</p>
     </div>
   </div>
@@ -263,6 +349,11 @@ onUnmounted(() => {
   animation: recording-pulse 1.2s ease-in-out infinite;
 }
 
+.voice-btn.speaking {
+  background: #8b5cf6;
+  box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
+}
+
 .voice-btn.transcribing {
   background: var(--muted);
   cursor: default;
@@ -311,10 +402,25 @@ onUnmounted(() => {
   50% { opacity: 0; }
 }
 
+.speaking-indicator {
+  margin-left: 4px;
+  font-size: 12px;
+  animation: speaking-bounce 0.8s ease-in-out infinite;
+}
+
+@keyframes speaking-bounce {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
 .hint {
   margin: 8px 0 0;
   text-align: center;
   font-size: 12px;
   color: var(--muted);
+}
+
+.hint.warn {
+  color: #ef4444;
 }
 </style>
