@@ -20,6 +20,7 @@ const stats = [
 
 const menuItems = [
   { label: '我的简历', icon: FileIcon, path: '/resume' },
+  { label: '我的收藏', icon: BarChartIcon, path: '/bookmarks' },
   { label: '能力成长曲线', icon: BarChartIcon, path: '/growth' },
   { label: '设置', icon: SettingsIcon, path: '/settings' },
   { label: '关于我们', icon: InfoIcon, path: '/about' },

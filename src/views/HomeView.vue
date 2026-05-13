@@ -19,8 +19,8 @@ function goToJobs() {
   router.push('/jobs')
 }
 
-function goToSetup() {
-  router.push('/setup')
+function goToJobDetail() {
+  router.push('/job-detail?from=home')
 }
 
 function goToNotifications() {
@@ -56,7 +56,7 @@ function goToNotifications() {
     </section>
 
     <section class="pad" data-od-id="cta" style="margin-top: 6px;">
-      <AppButton @click="goToJobs">
+      <AppButton @click="goToJobDetail">
         <PlayIcon class="btn-icon" />
         开始新面试
       </AppButton>
@@ -68,7 +68,7 @@ function goToNotifications() {
         <AppButton variant="ghost" style="padding: 4px 8px;" @click="goToJobs">全部 →</AppButton>
       </div>
       <div class="stack" style="gap: 8px;">
-        <AppCard class="job-row" @click="goToSetup">
+        <AppCard class="job-row" @click="goToJobDetail">
           <Avatar :size="44">
             <CodeIcon />
           </Avatar>
@@ -79,7 +79,7 @@ function goToNotifications() {
           <Pill>热</Pill>
         </AppCard>
 
-        <AppCard class="job-row" @click="goToSetup">
+        <AppCard class="job-row" @click="goToJobDetail">
           <Avatar :size="44">
             <PenIcon />
           </Avatar>
@@ -89,7 +89,7 @@ function goToNotifications() {
           </div>
         </AppCard>
 
-        <AppCard class="job-row" @click="goToSetup">
+        <AppCard class="job-row" @click="goToJobDetail">
           <Avatar :size="44">
             <BarChartIcon />
           </Avatar>

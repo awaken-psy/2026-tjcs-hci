@@ -21,6 +21,11 @@ import ResumeView from './views/ResumeView.vue'
 import GrowthView from './views/GrowthView.vue'
 import SettingsView from './views/SettingsView.vue'
 import AboutView from './views/AboutView.vue'
+import JobDetailView from './views/JobDetailView.vue'
+import PreInterviewView from './views/PreInterviewView.vue'
+import DetailedFeedbackView from './views/DetailedFeedbackView.vue'
+import BookmarkView from './views/BookmarkView.vue'
+import QuestionDetailView from './views/QuestionDetailView.vue'
 
 const routes = [
   { path: '/', name: 'Splash', component: SplashView },
@@ -40,6 +45,11 @@ const routes = [
   { path: '/growth', name: 'Growth', component: GrowthView },
   { path: '/settings', name: 'Settings', component: SettingsView },
   { path: '/about', name: 'About', component: AboutView },
+  { path: '/job-detail', name: 'JobDetail', component: JobDetailView },
+  { path: '/pre-interview', name: 'PreInterview', component: PreInterviewView },
+  { path: '/detailed-feedback', name: 'DetailedFeedback', component: DetailedFeedbackView },
+  { path: '/bookmarks', name: 'Bookmarks', component: BookmarkView },
+  { path: '/question-detail/:id', name: 'QuestionDetail', component: QuestionDetailView },
 ]
 
 const router = createRouter({
