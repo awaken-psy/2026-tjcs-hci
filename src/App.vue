@@ -24,6 +24,11 @@ const screens = [
   { id: 'Growth', path: '/growth' },
   { id: 'Settings', path: '/settings' },
   { id: 'About', path: '/about' },
+  { id: 'StudyPlan', path: '/study-plan' },
+  { id: 'Leaderboard', path: '/leaderboard' },
+  { id: 'Community', path: '/community' },
+  { id: 'PostExperience', path: '/post-experience' },
+  { id: 'ExperienceDetail', path: '/community/:id' },
 ]
 
 const routeOrder = Object.fromEntries(screens.map((s, i) => [s.path, i]))

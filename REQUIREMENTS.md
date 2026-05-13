@@ -2,7 +2,7 @@
 
 > 版本：v1.3  
 > 日期：2026-05-13  
-> 状态：路线 A 核心闭环已完成（100%）；路线 B 待开始；路线 C 待开始
+> 状态：路线 A 核心闭环已完成（100%）；路线 B 已完成（100%）；路线 C 待开始
 
 ---
 
@@ -38,9 +38,9 @@
 |---|---|---|---|---|
 | **P0** | 4 项 | 4 | 0 | 核心体验闭环，✅ 全部完成 |
 | **P1** | 4 项 | 3 | 1 | 高频使用场景，Search 待实现 |
-| **P2** | 4 项 | 0 | 4 | 增长与留存，全部待实现 |
+| **P2** | 4 项 | 4 | 0 | 增长与留存，✅ 全部完成 |
 | **P3** | 4 项 | 0 | 4 | 系统与边界，全部待实现 |
-| **合计** | **16 项** | **7** | **9** | 完成度 43.75%（路线 A 完成度 100%） |
+| **合计** | **16 项** | **11** | **5** | 完成度 68.75%（路线 A+B 完成度 100%） |
 
 ---
 
@@ -192,95 +192,65 @@ SearchView.vue（新增）
 
 ---
 
-## 五、P2 — 增长与留存（4 项）
+## 五、P2 — 增长与留存（4 项）✅ 全部完成
 
-### 5.1 练习计划 / 打卡日历（Study Plan）⏳ 待实现
+### 5.1 练习计划 / 打卡日历（Study Plan）✅ 已完成
 
-**需求描述**：
-- Home 或 Profile 中增加「学习计划」入口
-- 周计划设定：每周目标练习次数（1-7 次）
-- 日历视图：展示当月打卡情况，绿色=已完成，灰色=未完成
-- 连续打卡天数统计（Streak）
-- 达成周目标后给予成就提示
+> **文件**：`src/views/StudyPlanView.vue`  
+> **路由**：`/study-plan`
 
-**页面结构**：
-```
-StudyPlanView.vue（新增）
-├── 顶部标题「学习计划」
-├── 本周进度（环形：3/5 次）
-├── 连续打卡天数 🔥
-├── 月历视图（打卡标记）
-└── 本周计划列表（可勾选）
-```
+- [x] 连续打卡天数统计（Streak），火焰图标 + 激励文案
+- [x] 本周进度卡片：5 项任务可勾选，显示已完成进度
+- [x] 月历视图（2026 年 5 月）：已打卡日期绿色高亮，今日蓝色标记
+- [x] AI 建议任务卡片（基于错题、收藏、历史推荐）
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.2 排行榜 / Peer 对比（Leaderboard）⏳ 待实现
+### 5.2 排行榜 / Peer 对比（Leaderboard）✅ 已完成
 
-**需求描述**：
-- 匿名展示同岗位、同难度用户的平均分
-- 用户看到自己的百分位排名（如「超过了 78% 的候选人」）
-- 周榜/月榜/总榜切换
-- 前三名展示头像与分数
+> **文件**：`src/views/LeaderboardView.vue`  
+> **路由**：`/leaderboard`
 
-**页面结构**：
-```
-LeaderboardView.vue（新增）
-├── 顶部标题「排行榜」
-├── 岗位/难度筛选器
-├── 榜单类型切换（周/月/总）
-├── 前三名 podium 展示
-└── 用户自己排名（固定底部）
-```
+- [x] 周榜 / 月榜 / 总榜三 Tab 切换
+- [x] 前 3 名 podium 展示（金银铜奖牌样式）
+- [x] 25 条可滚动用户排行列表，含头像、分数、打卡天数
+- [x] 当前用户排名高亮（蓝色行背景）固定底部
+- [x] 百分位排名卡片：「你超越了 X% 的用户」
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.3 面经社区 / 讨论区（Community）⏳ 待实现
+### 5.3 面经社区 / 讨论区（Community）✅ 已完成
 
-**需求描述**：
-- 从「单用户练题工具」扩展到「面经沉淀社区」
-- 用户可发布面经（文字 + 标签）
-- 支持点赞、简单评论
-- 按岗位/公司筛选面经
-- 热门面经展示在首页推荐区
+> **文件**：`src/views/CommunityView.vue`、`src/views/PostExperienceView.vue`、`src/views/ExperienceDetailView.vue`  
+> **路由**：`/community`、`/post-experience`、`/community/:id`  
+> **数据层**：`src/utils/communityStore.ts`（响应式状态，会话内保持）
 
-**页面结构**：
-```
-CommunityView.vue（新增）
-├── 顶部标题「面经社区」
-├── 发布按钮（悬浮）
-├── 筛选标签（岗位/公司）
-└── 面经列表（卡片流）
-    └── PostCard
-        ├── 作者头像 + 名称
-        ├── 岗位标签
-        ├── 面经内容（前 3 行）
-        ├── 点赞数 / 评论数
-        └── 发布时间
-```
+- [x] 面经卡片 Feed 流（6 篇预设面经），含作者、公司/岗位标签、标题、摘要
+- [x] 按公司筛选（横向可滚动标签栏）
+- [x] 热门 / 最新排序切换
+- [x] 点赞 / 取消点赞（实时响应）
+- [x] 评论数展示
+- [x] 发布面经独立页面（`/post-experience`）：公司名称支持选择预设 + 自行输入、岗位方向、标题、正文
+- [x] 面经详情页（`/community/:id`）：完整正文、评论区（楼层式）、支持发表评论
+- [x] 数据在三个页面间共享，当前会话内实时生效
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.4 分享报告卡片（Share Card）⏳ 待实现
+### 5.4 分享报告卡片（Share Card）✅ 已完成
 
-**需求描述**：
-- Feedback / Detailed Feedback 支持生成分享图
-- 海报式卡片：总分、维度得分、岗位名称、日期
-- 底部带应用 Logo 和 slogan
-- 支持保存到相册（移动端）或下载（Web）
-- 分享文案自动复制到剪贴板
+> **文件**：`src/components/ui/ShareCard.vue`  
+> **接入页面**：`FeedbackView.vue`、`DetailedFeedbackView.vue`
 
-**页面结构**：
-```
-ShareCard.vue（组件）
-├── 海报画布（固定比例 4:5）
-│   ├── 顶部应用品牌区
-│   ├── 总分大字展示
-│   ├── 4 维度雷达图/条形图
-│   ├── 岗位 + 日期
-│   └── 底部 Slogan + Logo
-└── 操作按钮「保存图片」「复制文案」
-```
+- [x] 浮层弹窗（Teleport 全局挂载，遮挡 TabBar）
+- [x] 3 种视觉模板可选（经典深色 / 简约浅色 / 渐变蓝紫）
+- [x] 海报展示：总分大字 + 4 维度条形图 + 岗位名称 + 日期 + 历史对比
+- [x] 底部操作栏：「复制文案」+「保存图片」
+- [x] 「复制文案」自动生成分享文案并写入剪贴板 + 显示 Toast 提示
+- [x] 「保存图片」通过 Canvas 截图分享卡片区域并触发下载
+- [x] FeedbackView 和 DetailedFeedbackView 均已集成
 
 ---
 
@@ -376,10 +346,12 @@ HelpCenterView.vue（新增）
 | P1 | 收藏页 | `src/views/BookmarkView.vue` | `/bookmarks` | ✅ 已完成 |
 | P1 | 题目详情页 | `src/views/QuestionDetailView.vue` | `/question-detail/:id` | ✅ 已完成 |
 | P1 | 搜索页 | `src/views/SearchView.vue` | `/search` | ⏳ 待实现 |
-| P2 | 学习计划页 | `src/views/StudyPlanView.vue` | `/study-plan` | ⏳ 待实现 |
-| P2 | 排行榜页 | `src/views/LeaderboardView.vue` | `/leaderboard` | ⏳ 待实现 |
-| P2 | 社区页 | `src/views/CommunityView.vue` | `/community` | ⏳ 待实现 |
-| P2 | 分享卡片 | `src/components/ui/ShareCard.vue` | — | ⏳ 待实现 |
+| P2 | 学习计划页 | `src/views/StudyPlanView.vue` | `/study-plan` | ✅ 已完成 |
+| P2 | 排行榜页 | `src/views/LeaderboardView.vue` | `/leaderboard` | ✅ 已完成 |
+| P2 | 社区页 | `src/views/CommunityView.vue` | `/community` | ✅ 已完成 |
+| P2 | 发布面经页 | `src/views/PostExperienceView.vue` | `/post-experience` | ✅ 已完成 |
+| P2 | 面经详情页 | `src/views/ExperienceDetailView.vue` | `/community/:id` | ✅ 已完成 |
+| P2 | 分享卡片 | `src/components/ui/ShareCard.vue` | — | ✅ 已完成 |
 | P3 | 帮助中心 | `src/views/HelpCenterView.vue` | `/help-center` | ⏳ 待实现 |
 | P3 | 网络错误页 | `src/components/ui/NetworkError.vue` | — | ⏳ 待实现 |
 
@@ -390,11 +362,12 @@ HelpCenterView.vue（新增）
 | 页面 | 增强内容 | 状态 |
 |---|---|---|
 | `InterviewView.vue` | 进度条（QuestionNavigator）+ Pause 遮罩 + 结束确认弹窗 + 题目导航 + InterviewTimer | ✅ 已完成 |
-| `FeedbackView.vue` | 增加「查看详细报告」入口 → `/detailed-feedback` | ✅ 已完成 |
+| `FeedbackView.vue` | 增加「查看详细报告」入口 → `/detailed-feedback`；增加「分享成绩」按钮 + ShareCard 弹窗；面试得分后增加 x/5 格式显示 | ✅ 已完成 |
 | `ProfileView.vue` | 增加「我的收藏」入口 → `/bookmarks` | ✅ 已完成 |
-| `HomeView.vue` | CTA 按钮改为跳转 `/job-detail`，推荐岗位卡片可点击进入详情 | ✅ 已完成 |
+| `HomeView.vue` | CTA 按钮改为跳转 `/job-detail`，推荐岗位卡片可点击进入详情；新增「学习成长」入口卡片区（学习计划 / 排行榜 / 面经社区） | ✅ 已完成 |
 | `JobsView.vue` | 确认选择后跳转 `/job-detail`（原为直接跳 Setup） | ✅ 已完成 |
 | `SetupView.vue` | 开始面试后跳转 `/pre-interview`（原为直接跳 Interview） | ✅ 已完成 |
+| `DetailedFeedbackView.vue` | 增加「分享成绩」按钮 + ShareCard 弹窗 | ✅ 已完成 |
 | `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ⏳ 待实现 |
 | `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume/edit`，从 localStorage 读取数据，同步展示 6 模块（新增项目经历 + 自我评价 section） | ✅ 已完成 |
 
@@ -413,7 +386,7 @@ HelpCenterView.vue（新增）
 | `TopicTag.vue` | 考察维度标签 | `src/components/ui/TopicTag.vue` | ✅ 已完成 |
 | `WaveformVisualizer.vue` | 声波动画（用于麦克风测试反馈） | `src/components/ui/WaveformVisualizer.vue` | ✅ 已完成 |
 | `PauseOverlay.vue` | 面试暂停遮罩（已内联至 InterviewView） | — | ⏳ 可选抽取 |
-| `ShareCard.vue` | 分享海报卡片 | `src/components/ui/ShareCard.vue` | ⏳ 待实现 |
+| `ShareCard.vue` | 分享海报卡片（浮层弹窗 + 3 模板 + 复制/保存） | `src/components/ui/ShareCard.vue` | ✅ 已完成 |
 | `Toast.vue` | 全局轻量提示 | `src/components/ui/Toast.vue` | ⏳ 待实现 |
 | `SkeletonCard.vue` | 骨架屏卡片 | `src/components/ui/SkeletonCard.vue` | ⏳ 待实现 |
 | `SkeletonLine.vue` | 骨架屏文本行 | `src/components/ui/SkeletonLine.vue` | ⏳ 待实现 |
@@ -422,6 +395,7 @@ HelpCenterView.vue（新增）
 | `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现 |
 | `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现 |
 | `resumeStore.ts` | 简历数据 localStorage 持久化（类型定义 + 默认数据 + CRUD 封装） | `src/utils/resumeStore.ts` | ✅ 已完成 |
+| `communityStore.ts` | 面经社区数据响应式状态管理（预设数据 + 点赞/评论/发布） | `src/utils/communityStore.ts` | ✅ 已完成 |
 
 ---
 
@@ -434,10 +408,14 @@ HelpCenterView.vue（新增）
 - `Home` → `/job-detail`（JobDetailView）→ `/pre-interview`（PreInterviewView）→ `/interview`（InterviewView，含进度导航 + 暂停 + 确认弹窗）→ `/feedback`（FeedbackView）→ `/detailed-feedback`（DetailedFeedbackView，含逐题回顾 + 收藏）→ `/bookmarks`（BookmarkView）← `/profile`（ProfileView）
 - `Profile` → `/resume/edit`（ResumeEditView，6 模块编辑 + localStorage 持久化）→ `/resume`（ResumeView，同步展示）
 
-### 路线 B：完善个人资料与留存 ⏳ 待开始
-> Study Plan / Calendar → Leaderboard → Community → Share Card
+### 路线 B：增长与留存 ✅ 已完成
+> Study Plan → Leaderboard → Community（含 PostExperience + ExperienceDetail）→ Share Card
 
-适合想把原型做得更像完整上线产品的情况。
+所有 P2 需求已交付，Home 首页新增「学习成长」入口卡片区。
+新增 5 个页面文件：StudyPlanView、LeaderboardView、CommunityView、PostExperienceView、ExperienceDetailView。
+新增 1 个组件：ShareCard（浮层弹窗）。
+新增 1 个 store：communityStore（面经数据会话内共享）。
+FeedbackView 和 DetailedFeedbackView 均已集成 ShareCard。
 
 ### 路线 C：系统体验补齐 ⏳ 待开始
 > Empty States → Loading / Error → Dark Mode → Search

@@ -27,6 +27,11 @@ import DetailedFeedbackView from './views/DetailedFeedbackView.vue'
 import BookmarkView from './views/BookmarkView.vue'
 import QuestionDetailView from './views/QuestionDetailView.vue'
 import ResumeEditView from './views/ResumeEditView.vue'
+import StudyPlanView from './views/StudyPlanView.vue'
+import LeaderboardView from './views/LeaderboardView.vue'
+import CommunityView from './views/CommunityView.vue'
+import PostExperienceView from './views/PostExperienceView.vue'
+import ExperienceDetailView from './views/ExperienceDetailView.vue'
 
 const routes = [
   { path: '/', name: 'Splash', component: SplashView },
@@ -52,6 +57,11 @@ const routes = [
   { path: '/bookmarks', name: 'Bookmarks', component: BookmarkView },
   { path: '/question-detail/:id', name: 'QuestionDetail', component: QuestionDetailView },
   { path: '/resume/edit', name: 'ResumeEdit', component: ResumeEditView },
+  { path: '/study-plan', name: 'StudyPlan', component: StudyPlanView },
+  { path: '/leaderboard', name: 'Leaderboard', component: LeaderboardView },
+  { path: '/community', name: 'Community', component: CommunityView },
+  { path: '/post-experience', name: 'PostExperience', component: PostExperienceView },
+  { path: '/community/:id', name: 'ExperienceDetail', component: ExperienceDetailView },
 ]
 
 const router = createRouter({

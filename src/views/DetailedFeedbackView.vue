@@ -9,11 +9,14 @@ import ScoreRing from '@/components/ui/ScoreRing.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
 import BookmarkButton from '@/components/ui/BookmarkButton.vue'
 import ConfidenceMeter from '@/components/ui/ConfidenceMeter.vue'
+import ShareCard from '@/components/ui/ShareCard.vue'
+import type { ShareData } from '@/components/ui/ShareCard.vue'
 
 const router = useRouter()
 
 const expandedIndex = ref<number | null>(0)
 const showAnswerIndex = ref<number | null>(null)
+const showShare = ref(false)
 
 const overall = {
   score: 80,
@@ -24,6 +27,15 @@ const overall = {
     { label: '应变能力', score: 75 },
   ],
   historyAvg: 76,
+}
+
+const shareData: ShareData = {
+  score: 80,
+  jobTitle: '前端开发工程师 · 中级',
+  date: '2026年5月8日',
+  duration: '8 分钟',
+  dimensions: overall.dimensions,
+  historyAvg: overall.historyAvg,
 }
 
 const questions = [
@@ -88,7 +100,7 @@ function retry() {
     <div class="pad stack" style="padding-top: 12px; gap: 20px; padding-bottom: 24px;">
       <div class="row-between">
         <BackButton @click="goBack" />
-        <button class="share-btn" aria-label="分享">
+        <button class="share-btn" aria-label="分享" @click="showShare = true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="18" cy="5" r="3" />
             <circle cx="6" cy="12" r="3" />
@@ -182,6 +194,8 @@ function retry() {
         <AppButton variant="secondary" @click="goHome">返回首页</AppButton>
       </div>
     </div>
+
+    <ShareCard v-if="showShare" :data="shareData" @close="showShare = false" />
   </ScreenView>
 </template>
 
