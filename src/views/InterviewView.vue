@@ -573,7 +573,7 @@ onUnmounted(() => {
   display: inline-block;
   width: 2px;
   height: 1em;
-  background: #fff;
+  background: var(--fg);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.6s step-end infinite;

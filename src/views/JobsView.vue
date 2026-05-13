@@ -5,6 +5,7 @@ import ScreenView from '@/components/layout/ScreenView.vue'
 import BackButton from '@/components/ui/BackButton.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import JobCard from '@/components/ui/JobCard.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import CodeIcon from '@/components/icons/CodeIcon.vue'
 import PenIcon from '@/components/icons/PenIcon.vue'
 import InfoIcon from '@/components/icons/InfoIcon.vue'
@@ -47,6 +48,12 @@ function confirm() {
     <p class="desc">选择你要练习的岗位方向，我们将匹配对应题库。</p>
 
     <div class="job-grid" data-od-id="job-grid">
+      <EmptyState
+        v-if="jobs.length === 0"
+        class="grid-full"
+        title="暂无岗位"
+        description="岗位方向将在版本更新中陆续开放"
+      />
       <JobCard
         v-for="job in jobs"
         :key="job.id"
@@ -98,5 +105,9 @@ function confirm() {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.grid-full {
+  grid-column: 1 / -1;
 }
 </style>

@@ -4,6 +4,7 @@ import AppLayout from '@/components/layout/AppLayout.vue'
 import AppHeader from '@/components/ui/AppHeader.vue'
 import ListRow from '@/components/ui/ListRow.vue'
 import IconButton from '@/components/ui/IconButton.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import FilterIcon from '@/components/icons/FilterIcon.vue'
 import CodeIcon from '@/components/icons/CodeIcon.vue'
 import PenIcon from '@/components/icons/PenIcon.vue'
@@ -34,6 +35,11 @@ function goToFeedback() {
     </AppHeader>
 
     <section class="pad" data-od-id="history-list">
+      <EmptyState
+        v-if="history.length === 0"
+        title="暂无面试记录"
+        description="完成一次 AI 模拟面试后，记录会出现在这里"
+      />
       <ListRow
         v-for="item in history"
         :key="item.id"

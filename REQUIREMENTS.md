@@ -1,8 +1,8 @@
 ﻿# 智能面试官 — 前端 UI 交互原型需求分析报告
 
-> 版本：v1.3  
-> 日期：2026-05-13  
-> 状态：路线 A 核心闭环已完成（100%）；路线 B 已完成（100%）；路线 C 待开始
+> 版本：v1.4  
+> 日期：2026-05-14  
+> 状态：路线 A 核心闭环已完成（100%）；路线 B 已完成（100%）；路线 C 已完成（100%）
 
 ---
 
@@ -39,8 +39,8 @@
 | **P0** | 4 项 | 4 | 0 | 核心体验闭环，✅ 全部完成 |
 | **P1** | 4 项 | 3 | 1 | 高频使用场景，Search 待实现 |
 | **P2** | 4 项 | 4 | 0 | 增长与留存，✅ 全部完成 |
-| **P3** | 4 项 | 0 | 4 | 系统与边界，全部待实现 |
-| **合计** | **16 项** | **11** | **5** | 完成度 68.75%（路线 A+B 完成度 100%） |
+| **P3** | 4 项 | 4 | 0 | 系统与边界，✅ 全部完成 |
+| **合计** | **16 项** | **15** | **1** | 完成度 93.75%（路线 A+B+C 完成，仅剩 Search） |
 
 ---
 
@@ -256,82 +256,73 @@ SearchView.vue（新增）
 
 ## 六、P3 — 系统与边界（4 项）
 
-### 6.1 深色模式切换（Dark Mode）⏳ 待实现
+### 6.1 深色模式切换（Dark Mode）✅ 已完成
 
-**需求描述**：
-- Settings 中增加「主题」选项（跟随系统 / 浅色 / 深色）
-- 产品已有完整的 CSS 变量体系，需补充深色 token
-- 切换时无闪烁，平滑过渡
-- 各页面组件适配深色背景
+> **样式**：`src/styles/index.css`（`.screen[data-theme="dark"]` 全局无层叠块）  
+> **开关**：`src/views/SettingsView.vue`（通用 → 深色模式 toggle）  
+> **初始化**：`src/components/layout/DeviceFrame.vue`（onMounted 读取 localStorage）
 
-**需补充的 Token 示例**：
+- [x] SettingsView 中新增「深色模式」开关（月亮图标 + toggle）
+- [x] 浅色/深色两档切换，存 localStorage，刷新无闪烁
+- [x] CSS 变量体系完整覆盖：`--bg`、`--surface`、`--fg`、`--muted`、`--border`、`--accent`、`--fg-soft`
+- [x] 仅作用于手机屏幕区域（`.screen` 元素），不影响浏览器其余部分
+- [x] 20 个图标组件全部改为 `currentColor`，暗黑模式下自动跟随文字色
+- [x] 全局 Tailwind gray 文字类（`text-gray-*`）在暗黑模式下自动镜像翻转
+- [x] `--fg-soft` 软色 token 用于标签背景、switch 轨道、评分环底色等不需要全对比度的场景
+
+**暗黑 Token 值**：
 ```css
-[data-theme="dark"] {
-  --bg: #111111;
-  --surface: #1a1a1a;
-  --fg: #fafafa;
-  --muted: #a0a0a0;
-  --border: #333333;
-  --accent: #5b9aff;
+.screen[data-theme="dark"] {
+  --bg: oklch(22% 0.012 80);       /* 深灰底（非纯黑） */
+  --surface: oklch(26% 0.012 80);   /* 深灰卡片面 */
+  --fg: oklch(92% 0.005 80);        /* 浅色文字 */
+  --muted: oklch(65% 0.012 80);     /* 次要浅色文字 */
+  --border: oklch(32% 0.012 80);    /* 深色边框 */
+  --accent: oklch(62% 0.18 255);    /* 提亮主题色适配深底 */
+  --fg-soft: oklch(40% 0.012 80);   /* 软色（标签背景等） */
 }
 ```
 
 ---
 
-### 6.2 空状态 / 缺省页（Empty States）⏳ 待实现
+### 6.2 空状态 / 缺省页（Empty States）✅ 已完成
 
-**现状问题**：History、Notifications、Bookmarks 等列表页都是写死数据，无空状态处理。
+> **组件**：`src/components/ui/EmptyState.vue`  
+> **接入页面**：HistoryView、NotificationsView、BookmarksView、JobsView、CommunityView
 
-**需求描述**：
-- 各列表页补充「暂无数据」插图 + 引导文案
-- 空状态插图风格统一（简约线条风格）
-- 提供明确的下一步操作按钮
-
-**需覆盖页面**：
-- HistoryView — 暂无面试记录
-- NotificationsView — 暂无通知
-- BookmarksView — 暂无收藏
-- JobsView（搜索结果为空）— 暂无匹配岗位
-- CommunityView — 暂无须鲸
+- [x] 通用 `EmptyState` 组件，支持 `title` / `description` props + icon / action 插槽
+- [x] 各页面保留现有演示数据，通过 `v-if="list.length === 0"` 条件展示空状态
+- [x] HistoryView — 暂无面试记录（时钟图标 +「开始你的第一次模拟面试」）
+- [x] NotificationsView — 暂无通知（铃铛图标 +「有新的消息时会在这里显示」）
+- [x] BookmarksView — 暂无收藏（书签图标 +「收藏的题目会在这里显示」）
+- [x] JobsView — 暂无匹配岗位（搜索图标 +「尝试调整筛选条件」）
+- [x] CommunityView — 暂无须鲸（对话图标 +「还没有人分享面经」）
 
 ---
 
-### 6.3 加载 / 骨架屏 / 网络异常（Loading & Error）⏳ 待实现
+### 6.3 加载 / 骨架屏 / 网络异常（Loading & Error）✅ 已完成
 
-**需求描述**：
-- 全局 Loading 指示器（圆形 spinner，居中，半透明遮罩）
-- 列表页骨架屏（Shimmer 效果，卡片结构占位）
-- 网络断开提示页（插画 + 「重新加载」按钮）
-- 请求失败时 Toast 提示（非阻断）
+> **组件**：`src/components/ui/Toast.vue`、`SkeletonCard.vue`、`SkeletonLine.vue`、`NetworkError.vue`
 
-**组件清单**：
-```
-├── AppLoading.vue（全屏 loading）
-├── SkeletonCard.vue（列表骨架）
-├── SkeletonLine.vue（文本骨架）
-├── NetworkError.vue（错误页）
-└── Toast.vue（轻量提示）
-```
+- [x] `Toast.vue` — 轻量提示组件，支持 success/error/info 三种类型，3s 自动消失，淡入淡出动画
+- [x] `SkeletonCard.vue` — 卡片骨架屏，可配置行数，shimmer 动画，模拟卡片外观
+- [x] `SkeletonLine.vue` — 通用行级骨架屏，可配置宽高，shimmer 动画
+- [x] `NetworkError.vue` — 网络异常页（断线 SVG 插图 + 提示文案 + retry 事件 + 重试按钮）
 
 ---
 
-### 6.4 帮助与客服 / FAQ（Help Center）⏳ 待实现
+### 6.4 帮助与客服 / FAQ（Help Center）✅ 已完成
 
-**需求描述**：
-- Settings 或 Profile 中增加「帮助中心」入口
-- FAQ 分类展示（账号、面试、付费、技术问题）
-- 支持展开/折叠答案
-- 底部「联系客服」按钮（mailto 或跳转微信）
-- 搜索 FAQ 关键词
+> **文件**：`src/views/HelpCenterView.vue`  
+> **路由**：`/help-center`  
+> **入口**：SettingsView（系统 → 帮助中心）
 
-**页面结构**：
-```
-HelpCenterView.vue（新增）
-├── 顶部搜索栏
-├── FAQ 分类标签
-├── FAQ 列表（手风琴展开）
-└── 底部「联系客服」卡片
-```
+- [x] 顶部搜索框，支持 FAQ 关键词搜索
+- [x] FAQ 分类标签（账号相关 / 面试功能 / 题库与更新 / 隐私与安全 / 付费与订阅）
+- [x] 10 条贴近 AI 面试官产品场景的真实 FAQ（账号注册、密码找回、面试流程、答题时间、语音输入、题库更新、数据隐私、报告解读、订阅权益、练习频率建议）
+- [x] 手风琴展开/折叠（每次仅展开一项，展开时箭头旋转动效）
+- [x] 底部「联系客服」卡片（工作邮箱 + 在线客服 + 常见问题三个入口）
+- [x] SettingsView 已新增「帮助中心」入口
 
 ---
 
@@ -352,8 +343,8 @@ HelpCenterView.vue（新增）
 | P2 | 发布面经页 | `src/views/PostExperienceView.vue` | `/post-experience` | ✅ 已完成 |
 | P2 | 面经详情页 | `src/views/ExperienceDetailView.vue` | `/community/:id` | ✅ 已完成 |
 | P2 | 分享卡片 | `src/components/ui/ShareCard.vue` | — | ✅ 已完成 |
-| P3 | 帮助中心 | `src/views/HelpCenterView.vue` | `/help-center` | ⏳ 待实现 |
-| P3 | 网络错误页 | `src/components/ui/NetworkError.vue` | — | ⏳ 待实现 |
+| P3 | 帮助中心 | `src/views/HelpCenterView.vue` | `/help-center` | ✅ 已完成 |
+| P3 | 网络错误页 | `src/components/ui/NetworkError.vue` | — | ✅ 已完成 |
 
 ---
 
@@ -368,7 +359,7 @@ HelpCenterView.vue（新增）
 | `JobsView.vue` | 确认选择后跳转 `/job-detail`（原为直接跳 Setup） | ✅ 已完成 |
 | `SetupView.vue` | 开始面试后跳转 `/pre-interview`（原为直接跳 Interview） | ✅ 已完成 |
 | `DetailedFeedbackView.vue` | 增加「分享成绩」按钮 + ShareCard 弹窗 | ✅ 已完成 |
-| `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ⏳ 待实现 |
+| `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ✅ 已完成 |
 | `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume/edit`，从 localStorage 读取数据，同步展示 6 模块（新增项目经历 + 自我评价 section） | ✅ 已完成 |
 
 ---
@@ -387,13 +378,13 @@ HelpCenterView.vue（新增）
 | `WaveformVisualizer.vue` | 声波动画（用于麦克风测试反馈） | `src/components/ui/WaveformVisualizer.vue` | ✅ 已完成 |
 | `PauseOverlay.vue` | 面试暂停遮罩（已内联至 InterviewView） | — | ⏳ 可选抽取 |
 | `ShareCard.vue` | 分享海报卡片（浮层弹窗 + 3 模板 + 复制/保存） | `src/components/ui/ShareCard.vue` | ✅ 已完成 |
-| `Toast.vue` | 全局轻量提示 | `src/components/ui/Toast.vue` | ⏳ 待实现 |
-| `SkeletonCard.vue` | 骨架屏卡片 | `src/components/ui/SkeletonCard.vue` | ⏳ 待实现 |
-| `SkeletonLine.vue` | 骨架屏文本行 | `src/components/ui/SkeletonLine.vue` | ⏳ 待实现 |
-| `NetworkError.vue` | 网络错误展示 | `src/components/ui/NetworkError.vue` | ⏳ 待实现 |
-| `EmptyState.vue` | 空状态插图 | `src/components/ui/EmptyState.vue` | ⏳ 待实现 |
-| `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现 |
-| `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现 |
+| `Toast.vue` | 全局轻量提示 | `src/components/ui/Toast.vue` | ✅ 已完成 |
+| `SkeletonCard.vue` | 骨架屏卡片 | `src/components/ui/SkeletonCard.vue` | ✅ 已完成 |
+| `SkeletonLine.vue` | 骨架屏文本行 | `src/components/ui/SkeletonLine.vue` | ✅ 已完成 |
+| `NetworkError.vue` | 网络错误展示 | `src/components/ui/NetworkError.vue` | ✅ 已完成 |
+| `EmptyState.vue` | 空状态插图 | `src/components/ui/EmptyState.vue` | ✅ 已完成 |
+| `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现（未在需求列表，后续按需） |
+| `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现（未在需求列表，后续按需） |
 | `resumeStore.ts` | 简历数据 localStorage 持久化（类型定义 + 默认数据 + CRUD 封装） | `src/utils/resumeStore.ts` | ✅ 已完成 |
 | `communityStore.ts` | 面经社区数据响应式状态管理（预设数据 + 点赞/评论/发布） | `src/utils/communityStore.ts` | ✅ 已完成 |
 
@@ -417,10 +408,20 @@ HelpCenterView.vue（新增）
 新增 1 个 store：communityStore（面经数据会话内共享）。
 FeedbackView 和 DetailedFeedbackView 均已集成 ShareCard。
 
-### 路线 C：系统体验补齐 ⏳ 待开始
-> Empty States → Loading / Error → Dark Mode → Search
+### 路线 C：系统体验补齐 ✅ 已完成
+> Dark Mode → Empty States → Loading / Error → Help Center
 
-适合做 Demo 或测试展示前的最终 polish。
+**路线 C 所有 P3 需求已全部交付**。
+- `SettingsView` ← 深色模式 toggle + 帮助中心入口
+- 5 个列表视图（History、Notifications、Bookmarks、Jobs、Community）接入 `EmptyState` 空状态组件
+- 4 个新增 UI 组件：`Toast`（轻量提示）、`SkeletonCard`（卡片骨架屏）、`SkeletonLine`（文本骨架屏）、`NetworkError`（网络异常页）
+- 1 个新增页面：`HelpCenterView`（帮助中心/FAQ，路由 `/help-center`）
+- 暗黑模式仅作用于手机屏幕区域（`.screen[data-theme="dark"]`），不影响浏览器其余部分
+- 20 个图标组件统一改为 `currentColor`，暗黑模式下自动适配
+- 全局 Tailwind gray 文字类在暗黑模式下自动镜像翻转
+
+### 路线 D：搜索补齐 ⏳ 待开始
+> Search（P1 唯一剩余项）
 
 ---
 

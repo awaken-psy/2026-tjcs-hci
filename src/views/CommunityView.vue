@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import BackButton from '@/components/ui/BackButton.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import { store } from '@/utils/communityStore'
 
 const router = useRouter()
@@ -108,15 +109,11 @@ function goBack() { router.push('/home') }
       </div>
 
       <!-- Empty state -->
-      <div v-if="filteredPosts.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-          </svg>
-        </div>
-        <p class="empty-title">暂无面经</p>
-        <p class="empty-desc">该分类下还没有面经，去发布第一篇吧</p>
-      </div>
+      <EmptyState
+        v-if="filteredPosts.length === 0"
+        title="暂无面经"
+        description="该分类下还没有面经，去发布第一篇吧"
+      />
     </div>
   </ScreenView>
 </template>
@@ -243,17 +240,4 @@ function goBack() { router.push('/home') }
 .action-btn svg { width: 16px; height: 16px; }
 .action-btn.liked { color: oklch(55% 0.17 12); }
 
-/* Empty */
-.empty-state {
-  display: flex; flex-direction: column; align-items: center;
-  padding: 60px 20px; text-align: center;
-}
-.empty-icon {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--fg-soft); color: var(--border);
-  display: grid; place-items: center; margin-bottom: 16px;
-}
-.empty-icon svg { width: 24px; height: 24px; }
-.empty-title { font-size: 16px; font-weight: 600; margin: 0 0 6px; }
-.empty-desc { font-size: 13px; color: var(--muted); margin: 0; }
 </style>

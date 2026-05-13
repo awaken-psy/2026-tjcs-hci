@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import AppCard from '@/components/ui/AppCard.vue'
@@ -12,6 +12,25 @@ const router = useRouter()
 const pushEnabled = ref(true)
 const soundEnabled = ref(true)
 const dailyReminder = ref(true)
+const darkMode = ref(false)
+
+onMounted(() => {
+  darkMode.value = localStorage.getItem('theme') === 'dark'
+})
+
+function toggleDarkMode() {
+  darkMode.value = !darkMode.value
+  const theme = darkMode.value ? 'dark' : 'light'
+  localStorage.setItem('theme', theme)
+  const screen = document.querySelector('.screen')
+  if (screen) {
+    screen.setAttribute('data-theme', darkMode.value ? 'dark' : '')
+  }
+}
+
+function goHelpCenter() {
+  router.push('/help-center')
+}
 
 function logout() {
   router.push('/login')
@@ -78,6 +97,18 @@ function logout() {
       <section data-od-id="settings-general">
         <p class="section-label">通用</p>
         <AppCard padding="0">
+          <div class="setting-row toggle">
+            <div class="toggle-left">
+              <svg class="setting-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z" />
+              </svg>
+              <span>深色模式</span>
+            </div>
+            <label class="switch">
+              <input :checked="darkMode" type="checkbox" @change="toggleDarkMode" />
+              <span class="slider"></span>
+            </label>
+          </div>
           <div class="setting-row">
             <span>当前版本</span>
             <span class="val">v1.2.0</span>
@@ -85,6 +116,10 @@ function logout() {
           <div class="setting-row">
             <span>清除缓存</span>
             <span class="val">12.3 MB</span>
+          </div>
+          <div class="setting-row clickable" @click="goHelpCenter">
+            <span>帮助中心</span>
+            <ArrowRightIcon class="chev" />
           </div>
           <div class="setting-row">
             <span>数据导出</span>
@@ -154,6 +189,14 @@ export default {
   font-family: var(--font-mono);
   font-size: 13px;
   color: var(--muted);
+}
+
+.clickable {
+  cursor: pointer;
+}
+
+.clickable:active {
+  background: var(--fg-soft);
 }
 
 .toggle {

@@ -1,3 +1,15 @@
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+
+const screenRef = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  if (screenRef.value && localStorage.getItem('theme') === 'dark') {
+    screenRef.value.setAttribute('data-theme', 'dark')
+  }
+})
+</script>
+
 <template>
   <div class="device">
     <span class="btn-rail left-1" aria-hidden="true" />
@@ -6,7 +18,7 @@
     <span class="btn-rail right-1" aria-hidden="true" />
     <span class="island" aria-hidden="true" />
 
-    <div class="screen">
+    <div ref="screenRef" class="screen">
       <slot />
       <div class="home-indicator" aria-hidden="true" />
     </div>
