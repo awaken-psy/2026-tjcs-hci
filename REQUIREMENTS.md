@@ -1,8 +1,8 @@
-# 智能面试官 — 前端 UI 交互原型需求分析报告
+﻿# 智能面试官 — 前端 UI 交互原型需求分析报告
 
-> 版本：v1.2  
+> 版本：v1.3  
 > 日期：2026-05-13  
-> 状态：路线 A 核心闭环已完成 6/8 项（75%），路线 B/C 待开始
+> 状态：路线 A 核心闭环已完成（100%）；路线 B 待开始；路线 C 待开始
 
 ---
 
@@ -16,10 +16,10 @@
 |---|---|---|
 | **冷启动 / 认证** | Splash → Onboarding1/2 → Login → SMS Code | ✅ 已完整 |
 | **首页 / 流量分发** | Home（统计 + 推荐岗位 + 开始面试） | ✅ 已完整 |
-| **面试前准备** | Jobs（选岗位）→ Setup（难度 + 时长） | ⚠️ 缺少岗位详情、设备检查 |
-| **面试中** | Interview（AI 问答 + 语音输入 + 计时） | ⚠️ 缺少进度、暂停机制 |
-| **面试后复盘** | Feedback（总分 + 4 维度 + AI 建议） | ⚠️ 缺少逐题详细报告 |
-| **个人数据** | History（面试列表）→ Resume（简历展示）→ Growth（趋势 + 雷达图） | ⚠️ Resume 无编辑页 |
+| **面试前准备** | Jobs → JobDetail → Setup → PreInterview（设备检查） | ✅ 已完整 |
+| **面试中** | Interview（AI 问答 + 语音输入 + 计时 + 进度导航 + 暂停） | ✅ 已完整 |
+| **面试后复盘** | Feedback（总分）→ DetailedFeedback（逐题回顾 + AI 点评） | ✅ 已完整 |
+| **个人数据** | History（面试列表）→ Resume（简历编辑 + 展示）→ Growth（趋势 + 雷达图） | ✅ 已完整 |
 | **系统 / 用户** | Profile → Settings → Notifications → About | ✅ 已完整 |
 
 ### 1.2 技术栈与约束
@@ -36,11 +36,11 @@
 
 | 优先级 | 数量 | 已完成 | 待实现 | 说明 |
 |---|---|---|---|---|
-| **P0** | 4 项 | 3 | 1 | 核心体验闭环，JobDetail / PreInterview / DetailedFeedback 已交付，ResumeEdit 待实现 |
-| **P1** | 4 项 | 3 | 1 | 高频使用场景，Pause + Progress + Bookmarks 已交付，Search 待实现 |
+| **P0** | 4 项 | 4 | 0 | 核心体验闭环，✅ 全部完成 |
+| **P1** | 4 项 | 3 | 1 | 高频使用场景，Search 待实现 |
 | **P2** | 4 项 | 0 | 4 | 增长与留存，全部待实现 |
 | **P3** | 4 项 | 0 | 4 | 系统与边界，全部待实现 |
-| **合计** | **16 项** | **6** | **10** | 完成度 37.5%（路线 A 完成度 75%） |
+| **合计** | **16 项** | **7** | **9** | 完成度 43.75%（路线 A 完成度 100%） |
 
 ---
 
@@ -93,38 +93,29 @@
 
 ---
 
-### 3.4 简历编辑页（Resume Edit）⏳ 待实现
+### 3.4 简历编辑页（Resume Edit）✅ 已完成
 
-**现状问题**：Resume 页面底部有「编辑简历」按钮，但点击无跳转，页面是纯展示态。
+> **文件**：`src/views/ResumeEditView.vue`  
+> **路由**：`/resume/edit`  
+> **数据层**：`src/utils/resumeStore.ts`（localStorage 持久化）  
+> **关联组件**：`AppHeader`, `AppInput`, `AppButton`, `AppCard`, `BackButton`
 
-**需求描述**：
-- 补齐表单编辑页，支持增删改
-- 头像上传（点击头像弹出选择/拍摄）
-- 基本信息：姓名、电话、邮箱、求职意向
-- 教育背景：学校、专业、学历、时间段（支持多段）
-- 实习/工作经历：公司、岗位、时间段、描述（支持多段）
-- 技能标签：输入后回车添加，点击 x 删除
-- 项目经历（可选）：项目名称、角色、描述
+**已实现功能**：
+- [x] 模块级编辑：个人信息（name / email / phone / location）
+- [x] 教育经历（school / degree / major / dates，支持多段，可增删）
+- [x] 实习/工作经历（company / title / dates / description，支持多段，可增删）
+- [x] 技能标签（输入 + 添加按钮，点击 × 删除）
+- [x] 项目经历（name / role / dates / description，支持多段，可增删）
+- [x] 自我评价（单段文本）
+- [x] 左侧返回按钮（子页返回模块列表，模块列表返回 ResumeView）
+- [x] 数据自动保存至 localStorage，ResumeView 同步展示
 
-**页面结构**：
-```
-ResumeEditView.vue
-├── 顶部返回 + 保存按钮
-├── 头像区域（点击上传）
-├── 基本信息表单
-├── 教育背景（可新增/删除条目）
-├── 工作经历（可新增/删除条目）
-├── 技能标签（tag input）
-├── 项目经历（可新增/删除条目）
-└── 底部「保存简历」按钮（表单有变更时高亮）
-```
-
-**交互细节**：
-- 头像上传后本地预览，保存时模拟上传
-- 教育/工作经历条目支持拖拽排序（或上下箭头）
-- 技能标签输入时显示推荐标签下拉
-- 未保存返回时弹窗确认「是否保存修改？」
-- 表单校验：必填项为空时标红提示
+**暂未实现（后续迭代）**：
+- 头像上传（需后端存储支持）
+- 拖拽排序教育/工作经历条目
+- 技能标签推荐下拉（需标签库数据）
+- 未保存返回时弹窗确认
+- 表单校验（必填项为空时标红提示）
 
 ---
 
@@ -381,7 +372,7 @@ HelpCenterView.vue（新增）
 | P0 | 岗位详情页 | `src/views/JobDetailView.vue` | `/job-detail` | ✅ 已完成 |
 | P0 | 面试准备页 | `src/views/PreInterviewView.vue` | `/pre-interview` | ✅ 已完成 |
 | P0 | 详细报告页 | `src/views/DetailedFeedbackView.vue` | `/detailed-feedback` | ✅ 已完成 |
-| P0 | 简历编辑页 | `src/views/ResumeEditView.vue` | `/resume-edit` | ⏳ 待实现 |
+| P0 | 简历编辑页 | `src/views/ResumeEditView.vue` | `/resume/edit` | ✅ 已完成 |
 | P1 | 收藏页 | `src/views/BookmarkView.vue` | `/bookmarks` | ✅ 已完成 |
 | P1 | 题目详情页 | `src/views/QuestionDetailView.vue` | `/question-detail/:id` | ✅ 已完成 |
 | P1 | 搜索页 | `src/views/SearchView.vue` | `/search` | ⏳ 待实现 |
@@ -405,7 +396,7 @@ HelpCenterView.vue（新增）
 | `JobsView.vue` | 确认选择后跳转 `/job-detail`（原为直接跳 Setup） | ✅ 已完成 |
 | `SetupView.vue` | 开始面试后跳转 `/pre-interview`（原为直接跳 Interview） | ✅ 已完成 |
 | `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ⏳ 待实现 |
-| `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume-edit` | ⏳ 待实现 |
+| `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume/edit`，从 localStorage 读取数据，同步展示 6 模块（新增项目经历 + 自我评价 section） | ✅ 已完成 |
 
 ---
 
@@ -430,6 +421,7 @@ HelpCenterView.vue（新增）
 | `EmptyState.vue` | 空状态插图 | `src/components/ui/EmptyState.vue` | ⏳ 待实现 |
 | `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现 |
 | `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现 |
+| `resumeStore.ts` | 简历数据 localStorage 持久化（类型定义 + 默认数据 + CRUD 封装） | `src/utils/resumeStore.ts` | ✅ 已完成 |
 
 ---
 
@@ -438,13 +430,12 @@ HelpCenterView.vue（新增）
 ### 路线 A：强化面试核心闭环 ✅ 已完成
 > Job Detail → Pre-Interview Check → Interview Progress / Pause → Detailed Feedback → Bookmark
 
-**核心链路已全部打通**：
+**路线 A 所有需求已全部交付**。核心链路：
 - `Home` → `/job-detail`（JobDetailView）→ `/pre-interview`（PreInterviewView）→ `/interview`（InterviewView，含进度导航 + 暂停 + 确认弹窗）→ `/feedback`（FeedbackView）→ `/detailed-feedback`（DetailedFeedbackView，含逐题回顾 + 收藏）→ `/bookmarks`（BookmarkView）← `/profile`（ProfileView）
-
-**待收官**：ResumeEditView（P0 3.4）是路线 A 的最后一个缺口。
+- `Profile` → `/resume/edit`（ResumeEditView，6 模块编辑 + localStorage 持久化）→ `/resume`（ResumeView，同步展示）
 
 ### 路线 B：完善个人资料与留存 ⏳ 待开始
-> Resume Edit → Study Plan / Calendar → Leaderboard → Share Card
+> Study Plan / Calendar → Leaderboard → Community → Share Card
 
 适合想把原型做得更像完整上线产品的情况。
 

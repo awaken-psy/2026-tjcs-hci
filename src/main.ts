@@ -26,6 +26,7 @@ import PreInterviewView from './views/PreInterviewView.vue'
 import DetailedFeedbackView from './views/DetailedFeedbackView.vue'
 import BookmarkView from './views/BookmarkView.vue'
 import QuestionDetailView from './views/QuestionDetailView.vue'
+import ResumeEditView from './views/ResumeEditView.vue'
 
 const routes = [
   { path: '/', name: 'Splash', component: SplashView },
@@ -50,6 +51,7 @@ const routes = [
   { path: '/detailed-feedback', name: 'DetailedFeedback', component: DetailedFeedbackView },
   { path: '/bookmarks', name: 'Bookmarks', component: BookmarkView },
   { path: '/question-detail/:id', name: 'QuestionDetail', component: QuestionDetailView },
+  { path: '/resume/edit', name: 'ResumeEdit', component: ResumeEditView },
 ]
 
 const router = createRouter({
