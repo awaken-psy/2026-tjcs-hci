@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import AppLayout from '@/components/layout/AppLayout.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import Avatar from '@/components/ui/Avatar.vue'
@@ -9,6 +10,8 @@ import BarChartIcon from '@/components/icons/BarChartIcon.vue'
 import SettingsIcon from '@/components/icons/SettingsIcon.vue'
 import InfoIcon from '@/components/icons/InfoIcon.vue'
 
+const router = useRouter()
+
 const stats = [
   { label: '总面试次数', value: '23', accent: true },
   { label: '平均得分', value: '79', accent: false },
@@ -16,15 +19,11 @@ const stats = [
 ]
 
 const menuItems = [
-  { label: '我的简历', icon: FileIcon },
-  { label: '能力成长曲线', icon: BarChartIcon },
-  { label: '设置', icon: SettingsIcon },
-  { label: '关于我们', icon: InfoIcon },
+  { label: '我的简历', icon: FileIcon, path: '/resume' },
+  { label: '能力成长曲线', icon: BarChartIcon, path: '/growth' },
+  { label: '设置', icon: SettingsIcon, path: '/settings' },
+  { label: '关于我们', icon: InfoIcon, path: '/about' },
 ]
-
-function handleAlert(label: string) {
-  alert(`${label} 模块`)
-}
 </script>
 
 <template>
@@ -61,7 +60,7 @@ function handleAlert(label: string) {
           v-for="item in menuItems"
           :key="item.label"
           :label="item.label"
-          @click="handleAlert(item.label)"
+          @click="router.push(item.path)"
         >
           <template #icon>
             <component :is="item.icon" />

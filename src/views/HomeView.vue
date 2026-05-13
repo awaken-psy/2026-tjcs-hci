@@ -22,13 +22,17 @@ function goToJobs() {
 function goToSetup() {
   router.push('/setup')
 }
+
+function goToNotifications() {
+  router.push('/notifications')
+}
 </script>
 
 <template>
   <AppLayout>
     <AppHeader greeting="周四 · 5月8日" title="早上好，张明">
       <template #action>
-        <IconButton aria-label="通知">
+        <IconButton aria-label="通知" @click="goToNotifications">
           <BellIcon />
         </IconButton>
       </template>

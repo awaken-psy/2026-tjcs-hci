@@ -15,19 +15,31 @@ import InterviewView from './views/InterviewView.vue'
 import FeedbackView from './views/FeedbackView.vue'
 import HistoryView from './views/HistoryView.vue'
 import ProfileView from './views/ProfileView.vue'
+import SmsCodeView from './views/SmsCodeView.vue'
+import NotificationsView from './views/NotificationsView.vue'
+import ResumeView from './views/ResumeView.vue'
+import GrowthView from './views/GrowthView.vue'
+import SettingsView from './views/SettingsView.vue'
+import AboutView from './views/AboutView.vue'
 
 const routes = [
   { path: '/', name: 'Splash', component: SplashView },
   { path: '/onboarding-1', name: 'Onboarding1', component: Onboarding1View },
   { path: '/onboarding-2', name: 'Onboarding2', component: Onboarding2View },
   { path: '/login', name: 'Login', component: LoginView },
+  { path: '/sms-code', name: 'SmsCode', component: SmsCodeView },
   { path: '/home', name: 'Home', component: HomeView },
+  { path: '/notifications', name: 'Notifications', component: NotificationsView },
   { path: '/jobs', name: 'Jobs', component: JobsView },
   { path: '/setup', name: 'Setup', component: SetupView },
   { path: '/interview', name: 'Interview', component: InterviewView },
   { path: '/feedback', name: 'Feedback', component: FeedbackView },
   { path: '/history', name: 'History', component: HistoryView },
   { path: '/profile', name: 'Profile', component: ProfileView },
+  { path: '/resume', name: 'Resume', component: ResumeView },
+  { path: '/growth', name: 'Growth', component: GrowthView },
+  { path: '/settings', name: 'Settings', component: SettingsView },
+  { path: '/about', name: 'About', component: AboutView },
 ]
 
 const router = createRouter({

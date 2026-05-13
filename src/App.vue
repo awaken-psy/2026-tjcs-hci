@@ -9,13 +9,19 @@ const screens = [
   { id: 'Onboarding 1', path: '/onboarding-1' },
   { id: 'Onboarding 2', path: '/onboarding-2' },
   { id: 'Login', path: '/login' },
+  { id: 'SMS Code', path: '/sms-code' },
   { id: 'Home', path: '/home' },
+  { id: 'Notifications', path: '/notifications' },
   { id: 'Jobs', path: '/jobs' },
   { id: 'Setup', path: '/setup' },
   { id: 'Interview', path: '/interview' },
   { id: 'Feedback', path: '/feedback' },
   { id: 'History', path: '/history' },
   { id: 'Profile', path: '/profile' },
+  { id: 'Resume', path: '/resume' },
+  { id: 'Growth', path: '/growth' },
+  { id: 'Settings', path: '/settings' },
+  { id: 'About', path: '/about' },
 ]
 </script>
 
