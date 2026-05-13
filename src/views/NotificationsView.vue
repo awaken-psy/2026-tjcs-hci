@@ -3,6 +3,7 @@ import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import BackButton from '@/components/ui/BackButton.vue'
 import AppHeader from '@/components/ui/AppHeader.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 import BellIcon from '@/components/icons/BellIcon.vue'
 import ClockIcon from '@/components/icons/ClockIcon.vue'
 
@@ -76,7 +77,13 @@ const notifications: Notification[] = [
       </AppHeader>
 
       <div class="list">
+        <EmptyState
+          v-if="notifications.length === 0"
+          title="暂无通知"
+          description="面试提醒、反馈报告和系统通知会出现在这里"
+        />
         <div
+          v-else
           v-for="n in notifications"
           :key="n.id"
           class="noti-item"

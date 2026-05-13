@@ -1,12 +1,17 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import ScoreRing from '@/components/ui/ScoreRing.vue'
 import ProgressBar from '@/components/ui/ProgressBar.vue'
+import ShareCard from '@/components/ui/ShareCard.vue'
+import type { ShareData } from '@/components/ui/ShareCard.vue'
 
 const router = useRouter()
+
+const showShare = ref(false)
 
 const dimensions = [
   { label: '表达能力', score: 85 },
@@ -14,6 +19,15 @@ const dimensions = [
   { label: '专业知识', score: 82 },
   { label: '应变能力', score: 75 },
 ]
+
+const shareData: ShareData = {
+  score: 80,
+  jobTitle: '前端开发工程师 · 中级',
+  date: '2026年5月8日',
+  duration: '8 分钟',
+  dimensions,
+  historyAvg: 76,
+}
 
 function goHome() {
   router.push('/home')
@@ -38,6 +52,7 @@ function goDetailed() {
     </div>
 
     <ScoreRing :score="80" />
+    <p class="score-out-of">4.0 / 5</p>
 
     <section>
       <p class="meta section-title">维度得分</p>
@@ -63,10 +78,22 @@ function goDetailed() {
       <AppButton @click="goDetailed">
         查看详细报告
       </AppButton>
+      <AppButton variant="secondary" @click="showShare = true">
+        <svg style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;margin-right:6px;" viewBox="0 0 24 24">
+          <circle cx="18" cy="5" r="3" />
+          <circle cx="6" cy="12" r="3" />
+          <circle cx="18" cy="19" r="3" />
+          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+        </svg>
+        分享成绩
+      </AppButton>
       <AppButton variant="secondary" @click="retry">再来一次</AppButton>
       <AppButton variant="ghost" @click="goHome">回到首页</AppButton>
     </div>
     </div>
+
+    <ShareCard v-if="showShare" :data="shareData" @close="showShare = false" />
   </ScreenView>
 </template>
 
@@ -113,6 +140,14 @@ function goDetailed() {
   font-variant-numeric: tabular-nums;
   font-size: 14px;
   font-weight: 600;
+}
+
+.score-out-of {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--muted);
+  margin: 8px 0 0;
 }
 
 .advice {

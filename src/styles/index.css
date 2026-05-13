@@ -48,6 +48,19 @@
   }
 }
 
+/* ── 暗黑模式 —— 只作用于手机屏幕区域 ── */
+/* 置于 @layer 外部，确保最高优先级 */
+.screen[data-theme="dark"] {
+  --bg: oklch(16% 0.012 250);
+  --surface: oklch(22% 0.015 250);
+  --fg: oklch(92% 0.005 240);
+  --muted: oklch(62% 0.018 240);
+  --border: oklch(28% 0.015 250);
+  --accent: oklch(60% 0.18 145);
+  --accent-soft: color-mix(in oklch, var(--accent) 18%, transparent);
+  --fg-soft: color-mix(in oklch, var(--fg) 8%, transparent);
+}
+
 /* ── Page Transitions ── */
 
 /* Slide Left (forward / push) */

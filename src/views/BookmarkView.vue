@@ -5,6 +5,7 @@ import ScreenView from '@/components/layout/ScreenView.vue'
 import BackButton from '@/components/ui/BackButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import Tag from '@/components/ui/Tag.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
 
 const router = useRouter()
 
@@ -85,15 +86,11 @@ function goPractice(id: string) {
       </div>
 
       <!-- Empty State -->
-      <div v-if="filtered.length === 0" class="empty-state">
-        <div class="empty-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
-          </svg>
-        </div>
-        <p class="empty-title">暂无收藏</p>
-        <p class="empty-desc">在详细报告中收藏题目，即可在这里集中复习</p>
-      </div>
+      <EmptyState
+        v-if="filtered.length === 0"
+        title="暂无收藏"
+        description="在详细报告中收藏题目，即可在这里集中复习"
+      />
 
       <!-- List -->
       <div v-else class="bookmark-list">
@@ -177,44 +174,6 @@ function goPractice(id: string) {
   background: var(--accent);
   color: #fff;
   border-color: var(--accent);
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-.empty-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: var(--fg-soft);
-  color: var(--border);
-  display: grid;
-  place-items: center;
-  margin-bottom: 16px;
-}
-
-.empty-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.empty-title {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 6px;
-}
-
-.empty-desc {
-  font-size: 13px;
-  color: var(--muted);
-  margin: 0;
-  line-height: 1.5;
 }
 
 .bookmark-list {

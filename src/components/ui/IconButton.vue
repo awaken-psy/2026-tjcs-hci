@@ -19,15 +19,12 @@ const emit = defineEmits<{
   border: 1px solid var(--border);
   display: grid;
   place-items: center;
-  color: var(--fg);
+  color: var(--muted);
   cursor: pointer;
 }
 
-.icon-btn svg {
-  width: 18px;
-  height: 18px;
-  stroke: currentColor;
-  fill: none;
-  stroke-width: 1.7;
+.icon-btn :deep(svg) {
+  width: 16px;
+  height: 16px;
 }
 </style>

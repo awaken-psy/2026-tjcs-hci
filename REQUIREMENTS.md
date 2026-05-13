@@ -1,8 +1,8 @@
-# 智能面试官 — 前端 UI 交互原型需求分析报告
+﻿# 智能面试官 — 前端 UI 交互原型需求分析报告
 
-> 版本：v1.2  
-> 日期：2026-05-13  
-> 状态：路线 A 核心闭环已完成 6/8 项（75%），路线 B/C 待开始
+> 版本：v1.4  
+> 日期：2026-05-14  
+> 状态：路线 A 核心闭环已完成（100%）；路线 B 已完成（100%）；路线 C 已完成（100%）
 
 ---
 
@@ -16,10 +16,10 @@
 |---|---|---|
 | **冷启动 / 认证** | Splash → Onboarding1/2 → Login → SMS Code | ✅ 已完整 |
 | **首页 / 流量分发** | Home（统计 + 推荐岗位 + 开始面试） | ✅ 已完整 |
-| **面试前准备** | Jobs（选岗位）→ Setup（难度 + 时长） | ⚠️ 缺少岗位详情、设备检查 |
-| **面试中** | Interview（AI 问答 + 语音输入 + 计时） | ⚠️ 缺少进度、暂停机制 |
-| **面试后复盘** | Feedback（总分 + 4 维度 + AI 建议） | ⚠️ 缺少逐题详细报告 |
-| **个人数据** | History（面试列表）→ Resume（简历展示）→ Growth（趋势 + 雷达图） | ⚠️ Resume 无编辑页 |
+| **面试前准备** | Jobs → JobDetail → Setup → PreInterview（设备检查） | ✅ 已完整 |
+| **面试中** | Interview（AI 问答 + 语音输入 + 计时 + 进度导航 + 暂停） | ✅ 已完整 |
+| **面试后复盘** | Feedback（总分）→ DetailedFeedback（逐题回顾 + AI 点评） | ✅ 已完整 |
+| **个人数据** | History（面试列表）→ Resume（简历编辑 + 展示）→ Growth（趋势 + 雷达图） | ✅ 已完整 |
 | **系统 / 用户** | Profile → Settings → Notifications → About | ✅ 已完整 |
 
 ### 1.2 技术栈与约束
@@ -36,11 +36,11 @@
 
 | 优先级 | 数量 | 已完成 | 待实现 | 说明 |
 |---|---|---|---|---|
-| **P0** | 4 项 | 3 | 1 | 核心体验闭环，JobDetail / PreInterview / DetailedFeedback 已交付，ResumeEdit 待实现 |
-| **P1** | 4 项 | 3 | 1 | 高频使用场景，Pause + Progress + Bookmarks 已交付，Search 待实现 |
-| **P2** | 4 项 | 0 | 4 | 增长与留存，全部待实现 |
-| **P3** | 4 项 | 0 | 4 | 系统与边界，全部待实现 |
-| **合计** | **16 项** | **6** | **10** | 完成度 37.5%（路线 A 完成度 75%） |
+| **P0** | 4 项 | 4 | 0 | 核心体验闭环，✅ 全部完成 |
+| **P1** | 4 项 | 3 | 1 | 高频使用场景，Search 待实现 |
+| **P2** | 4 项 | 4 | 0 | 增长与留存，✅ 全部完成 |
+| **P3** | 4 项 | 4 | 0 | 系统与边界，✅ 全部完成 |
+| **合计** | **16 项** | **15** | **1** | 完成度 93.75%（路线 A+B+C 完成，仅剩 Search） |
 
 ---
 
@@ -93,38 +93,29 @@
 
 ---
 
-### 3.4 简历编辑页（Resume Edit）⏳ 待实现
+### 3.4 简历编辑页（Resume Edit）✅ 已完成
 
-**现状问题**：Resume 页面底部有「编辑简历」按钮，但点击无跳转，页面是纯展示态。
+> **文件**：`src/views/ResumeEditView.vue`  
+> **路由**：`/resume/edit`  
+> **数据层**：`src/utils/resumeStore.ts`（localStorage 持久化）  
+> **关联组件**：`AppHeader`, `AppInput`, `AppButton`, `AppCard`, `BackButton`
 
-**需求描述**：
-- 补齐表单编辑页，支持增删改
-- 头像上传（点击头像弹出选择/拍摄）
-- 基本信息：姓名、电话、邮箱、求职意向
-- 教育背景：学校、专业、学历、时间段（支持多段）
-- 实习/工作经历：公司、岗位、时间段、描述（支持多段）
-- 技能标签：输入后回车添加，点击 x 删除
-- 项目经历（可选）：项目名称、角色、描述
+**已实现功能**：
+- [x] 模块级编辑：个人信息（name / email / phone / location）
+- [x] 教育经历（school / degree / major / dates，支持多段，可增删）
+- [x] 实习/工作经历（company / title / dates / description，支持多段，可增删）
+- [x] 技能标签（输入 + 添加按钮，点击 × 删除）
+- [x] 项目经历（name / role / dates / description，支持多段，可增删）
+- [x] 自我评价（单段文本）
+- [x] 左侧返回按钮（子页返回模块列表，模块列表返回 ResumeView）
+- [x] 数据自动保存至 localStorage，ResumeView 同步展示
 
-**页面结构**：
-```
-ResumeEditView.vue
-├── 顶部返回 + 保存按钮
-├── 头像区域（点击上传）
-├── 基本信息表单
-├── 教育背景（可新增/删除条目）
-├── 工作经历（可新增/删除条目）
-├── 技能标签（tag input）
-├── 项目经历（可新增/删除条目）
-└── 底部「保存简历」按钮（表单有变更时高亮）
-```
-
-**交互细节**：
-- 头像上传后本地预览，保存时模拟上传
-- 教育/工作经历条目支持拖拽排序（或上下箭头）
-- 技能标签输入时显示推荐标签下拉
-- 未保存返回时弹窗确认「是否保存修改？」
-- 表单校验：必填项为空时标红提示
+**暂未实现（后续迭代）**：
+- 头像上传（需后端存储支持）
+- 拖拽排序教育/工作经历条目
+- 技能标签推荐下拉（需标签库数据）
+- 未保存返回时弹窗确认
+- 表单校验（必填项为空时标红提示）
 
 ---
 
@@ -201,176 +192,137 @@ SearchView.vue（新增）
 
 ---
 
-## 五、P2 — 增长与留存（4 项）
+## 五、P2 — 增长与留存（4 项）✅ 全部完成
 
-### 5.1 练习计划 / 打卡日历（Study Plan）⏳ 待实现
+### 5.1 练习计划 / 打卡日历（Study Plan）✅ 已完成
 
-**需求描述**：
-- Home 或 Profile 中增加「学习计划」入口
-- 周计划设定：每周目标练习次数（1-7 次）
-- 日历视图：展示当月打卡情况，绿色=已完成，灰色=未完成
-- 连续打卡天数统计（Streak）
-- 达成周目标后给予成就提示
+> **文件**：`src/views/StudyPlanView.vue`  
+> **路由**：`/study-plan`
 
-**页面结构**：
-```
-StudyPlanView.vue（新增）
-├── 顶部标题「学习计划」
-├── 本周进度（环形：3/5 次）
-├── 连续打卡天数 🔥
-├── 月历视图（打卡标记）
-└── 本周计划列表（可勾选）
-```
+- [x] 连续打卡天数统计（Streak），火焰图标 + 激励文案
+- [x] 本周进度卡片：5 项任务可勾选，显示已完成进度
+- [x] 月历视图（2026 年 5 月）：已打卡日期绿色高亮，今日蓝色标记
+- [x] AI 建议任务卡片（基于错题、收藏、历史推荐）
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.2 排行榜 / Peer 对比（Leaderboard）⏳ 待实现
+### 5.2 排行榜 / Peer 对比（Leaderboard）✅ 已完成
 
-**需求描述**：
-- 匿名展示同岗位、同难度用户的平均分
-- 用户看到自己的百分位排名（如「超过了 78% 的候选人」）
-- 周榜/月榜/总榜切换
-- 前三名展示头像与分数
+> **文件**：`src/views/LeaderboardView.vue`  
+> **路由**：`/leaderboard`
 
-**页面结构**：
-```
-LeaderboardView.vue（新增）
-├── 顶部标题「排行榜」
-├── 岗位/难度筛选器
-├── 榜单类型切换（周/月/总）
-├── 前三名 podium 展示
-└── 用户自己排名（固定底部）
-```
+- [x] 周榜 / 月榜 / 总榜三 Tab 切换
+- [x] 前 3 名 podium 展示（金银铜奖牌样式）
+- [x] 25 条可滚动用户排行列表，含头像、分数、打卡天数
+- [x] 当前用户排名高亮（蓝色行背景）固定底部
+- [x] 百分位排名卡片：「你超越了 X% 的用户」
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.3 面经社区 / 讨论区（Community）⏳ 待实现
+### 5.3 面经社区 / 讨论区（Community）✅ 已完成
 
-**需求描述**：
-- 从「单用户练题工具」扩展到「面经沉淀社区」
-- 用户可发布面经（文字 + 标签）
-- 支持点赞、简单评论
-- 按岗位/公司筛选面经
-- 热门面经展示在首页推荐区
+> **文件**：`src/views/CommunityView.vue`、`src/views/PostExperienceView.vue`、`src/views/ExperienceDetailView.vue`  
+> **路由**：`/community`、`/post-experience`、`/community/:id`  
+> **数据层**：`src/utils/communityStore.ts`（响应式状态，会话内保持）
 
-**页面结构**：
-```
-CommunityView.vue（新增）
-├── 顶部标题「面经社区」
-├── 发布按钮（悬浮）
-├── 筛选标签（岗位/公司）
-└── 面经列表（卡片流）
-    └── PostCard
-        ├── 作者头像 + 名称
-        ├── 岗位标签
-        ├── 面经内容（前 3 行）
-        ├── 点赞数 / 评论数
-        └── 发布时间
-```
+- [x] 面经卡片 Feed 流（6 篇预设面经），含作者、公司/岗位标签、标题、摘要
+- [x] 按公司筛选（横向可滚动标签栏）
+- [x] 热门 / 最新排序切换
+- [x] 点赞 / 取消点赞（实时响应）
+- [x] 评论数展示
+- [x] 发布面经独立页面（`/post-experience`）：公司名称支持选择预设 + 自行输入、岗位方向、标题、正文
+- [x] 面经详情页（`/community/:id`）：完整正文、评论区（楼层式）、支持发表评论
+- [x] 数据在三个页面间共享，当前会话内实时生效
+- [x] HomeView 首页新增「学习成长」入口卡片区域
 
 ---
 
-### 5.4 分享报告卡片（Share Card）⏳ 待实现
+### 5.4 分享报告卡片（Share Card）✅ 已完成
 
-**需求描述**：
-- Feedback / Detailed Feedback 支持生成分享图
-- 海报式卡片：总分、维度得分、岗位名称、日期
-- 底部带应用 Logo 和 slogan
-- 支持保存到相册（移动端）或下载（Web）
-- 分享文案自动复制到剪贴板
+> **文件**：`src/components/ui/ShareCard.vue`  
+> **接入页面**：`FeedbackView.vue`、`DetailedFeedbackView.vue`
 
-**页面结构**：
-```
-ShareCard.vue（组件）
-├── 海报画布（固定比例 4:5）
-│   ├── 顶部应用品牌区
-│   ├── 总分大字展示
-│   ├── 4 维度雷达图/条形图
-│   ├── 岗位 + 日期
-│   └── 底部 Slogan + Logo
-└── 操作按钮「保存图片」「复制文案」
-```
+- [x] 浮层弹窗（Teleport 全局挂载，遮挡 TabBar）
+- [x] 3 种视觉模板可选（经典深色 / 简约浅色 / 渐变蓝紫）
+- [x] 海报展示：总分大字 + 4 维度条形图 + 岗位名称 + 日期 + 历史对比
+- [x] 底部操作栏：「复制文案」+「保存图片」
+- [x] 「复制文案」自动生成分享文案并写入剪贴板 + 显示 Toast 提示
+- [x] 「保存图片」通过 Canvas 截图分享卡片区域并触发下载
+- [x] FeedbackView 和 DetailedFeedbackView 均已集成
 
 ---
 
 ## 六、P3 — 系统与边界（4 项）
 
-### 6.1 深色模式切换（Dark Mode）⏳ 待实现
+### 6.1 深色模式切换（Dark Mode）✅ 已完成
 
-**需求描述**：
-- Settings 中增加「主题」选项（跟随系统 / 浅色 / 深色）
-- 产品已有完整的 CSS 变量体系，需补充深色 token
-- 切换时无闪烁，平滑过渡
-- 各页面组件适配深色背景
+> **样式**：`src/styles/index.css`（`.screen[data-theme="dark"]` 全局无层叠块）  
+> **开关**：`src/views/SettingsView.vue`（通用 → 深色模式 toggle）  
+> **初始化**：`src/components/layout/DeviceFrame.vue`（onMounted 读取 localStorage）
 
-**需补充的 Token 示例**：
+- [x] SettingsView 中新增「深色模式」开关（月亮图标 + toggle）
+- [x] 浅色/深色两档切换，存 localStorage，刷新无闪烁
+- [x] CSS 变量体系完整覆盖：`--bg`、`--surface`、`--fg`、`--muted`、`--border`、`--accent`、`--fg-soft`
+- [x] 仅作用于手机屏幕区域（`.screen` 元素），不影响浏览器其余部分
+- [x] 20 个图标组件全部改为 `currentColor`，暗黑模式下自动跟随文字色
+- [x] 全局 Tailwind gray 文字类（`text-gray-*`）在暗黑模式下自动镜像翻转
+- [x] `--fg-soft` 软色 token 用于标签背景、switch 轨道、评分环底色等不需要全对比度的场景
+
+**暗黑 Token 值**：
 ```css
-[data-theme="dark"] {
-  --bg: #111111;
-  --surface: #1a1a1a;
-  --fg: #fafafa;
-  --muted: #a0a0a0;
-  --border: #333333;
-  --accent: #5b9aff;
+.screen[data-theme="dark"] {
+  --bg: oklch(22% 0.012 80);       /* 深灰底（非纯黑） */
+  --surface: oklch(26% 0.012 80);   /* 深灰卡片面 */
+  --fg: oklch(92% 0.005 80);        /* 浅色文字 */
+  --muted: oklch(65% 0.012 80);     /* 次要浅色文字 */
+  --border: oklch(32% 0.012 80);    /* 深色边框 */
+  --accent: oklch(62% 0.18 255);    /* 提亮主题色适配深底 */
+  --fg-soft: oklch(40% 0.012 80);   /* 软色（标签背景等） */
 }
 ```
 
 ---
 
-### 6.2 空状态 / 缺省页（Empty States）⏳ 待实现
+### 6.2 空状态 / 缺省页（Empty States）✅ 已完成
 
-**现状问题**：History、Notifications、Bookmarks 等列表页都是写死数据，无空状态处理。
+> **组件**：`src/components/ui/EmptyState.vue`  
+> **接入页面**：HistoryView、NotificationsView、BookmarksView、JobsView、CommunityView
 
-**需求描述**：
-- 各列表页补充「暂无数据」插图 + 引导文案
-- 空状态插图风格统一（简约线条风格）
-- 提供明确的下一步操作按钮
-
-**需覆盖页面**：
-- HistoryView — 暂无面试记录
-- NotificationsView — 暂无通知
-- BookmarksView — 暂无收藏
-- JobsView（搜索结果为空）— 暂无匹配岗位
-- CommunityView — 暂无须鲸
+- [x] 通用 `EmptyState` 组件，支持 `title` / `description` props + icon / action 插槽
+- [x] 各页面保留现有演示数据，通过 `v-if="list.length === 0"` 条件展示空状态
+- [x] HistoryView — 暂无面试记录（时钟图标 +「开始你的第一次模拟面试」）
+- [x] NotificationsView — 暂无通知（铃铛图标 +「有新的消息时会在这里显示」）
+- [x] BookmarksView — 暂无收藏（书签图标 +「收藏的题目会在这里显示」）
+- [x] JobsView — 暂无匹配岗位（搜索图标 +「尝试调整筛选条件」）
+- [x] CommunityView — 暂无须鲸（对话图标 +「还没有人分享面经」）
 
 ---
 
-### 6.3 加载 / 骨架屏 / 网络异常（Loading & Error）⏳ 待实现
+### 6.3 加载 / 骨架屏 / 网络异常（Loading & Error）✅ 已完成
 
-**需求描述**：
-- 全局 Loading 指示器（圆形 spinner，居中，半透明遮罩）
-- 列表页骨架屏（Shimmer 效果，卡片结构占位）
-- 网络断开提示页（插画 + 「重新加载」按钮）
-- 请求失败时 Toast 提示（非阻断）
+> **组件**：`src/components/ui/Toast.vue`、`SkeletonCard.vue`、`SkeletonLine.vue`、`NetworkError.vue`
 
-**组件清单**：
-```
-├── AppLoading.vue（全屏 loading）
-├── SkeletonCard.vue（列表骨架）
-├── SkeletonLine.vue（文本骨架）
-├── NetworkError.vue（错误页）
-└── Toast.vue（轻量提示）
-```
+- [x] `Toast.vue` — 轻量提示组件，支持 success/error/info 三种类型，3s 自动消失，淡入淡出动画
+- [x] `SkeletonCard.vue` — 卡片骨架屏，可配置行数，shimmer 动画，模拟卡片外观
+- [x] `SkeletonLine.vue` — 通用行级骨架屏，可配置宽高，shimmer 动画
+- [x] `NetworkError.vue` — 网络异常页（断线 SVG 插图 + 提示文案 + retry 事件 + 重试按钮）
 
 ---
 
-### 6.4 帮助与客服 / FAQ（Help Center）⏳ 待实现
+### 6.4 帮助与客服 / FAQ（Help Center）✅ 已完成
 
-**需求描述**：
-- Settings 或 Profile 中增加「帮助中心」入口
-- FAQ 分类展示（账号、面试、付费、技术问题）
-- 支持展开/折叠答案
-- 底部「联系客服」按钮（mailto 或跳转微信）
-- 搜索 FAQ 关键词
+> **文件**：`src/views/HelpCenterView.vue`  
+> **路由**：`/help-center`  
+> **入口**：SettingsView（系统 → 帮助中心）
 
-**页面结构**：
-```
-HelpCenterView.vue（新增）
-├── 顶部搜索栏
-├── FAQ 分类标签
-├── FAQ 列表（手风琴展开）
-└── 底部「联系客服」卡片
-```
+- [x] 顶部搜索框，支持 FAQ 关键词搜索
+- [x] FAQ 分类标签（账号相关 / 面试功能 / 题库与更新 / 隐私与安全 / 付费与订阅）
+- [x] 10 条贴近 AI 面试官产品场景的真实 FAQ（账号注册、密码找回、面试流程、答题时间、语音输入、题库更新、数据隐私、报告解读、订阅权益、练习频率建议）
+- [x] 手风琴展开/折叠（每次仅展开一项，展开时箭头旋转动效）
+- [x] 底部「联系客服」卡片（工作邮箱 + 在线客服 + 常见问题三个入口）
+- [x] SettingsView 已新增「帮助中心」入口
 
 ---
 
@@ -381,16 +333,18 @@ HelpCenterView.vue（新增）
 | P0 | 岗位详情页 | `src/views/JobDetailView.vue` | `/job-detail` | ✅ 已完成 |
 | P0 | 面试准备页 | `src/views/PreInterviewView.vue` | `/pre-interview` | ✅ 已完成 |
 | P0 | 详细报告页 | `src/views/DetailedFeedbackView.vue` | `/detailed-feedback` | ✅ 已完成 |
-| P0 | 简历编辑页 | `src/views/ResumeEditView.vue` | `/resume-edit` | ⏳ 待实现 |
+| P0 | 简历编辑页 | `src/views/ResumeEditView.vue` | `/resume/edit` | ✅ 已完成 |
 | P1 | 收藏页 | `src/views/BookmarkView.vue` | `/bookmarks` | ✅ 已完成 |
 | P1 | 题目详情页 | `src/views/QuestionDetailView.vue` | `/question-detail/:id` | ✅ 已完成 |
 | P1 | 搜索页 | `src/views/SearchView.vue` | `/search` | ⏳ 待实现 |
-| P2 | 学习计划页 | `src/views/StudyPlanView.vue` | `/study-plan` | ⏳ 待实现 |
-| P2 | 排行榜页 | `src/views/LeaderboardView.vue` | `/leaderboard` | ⏳ 待实现 |
-| P2 | 社区页 | `src/views/CommunityView.vue` | `/community` | ⏳ 待实现 |
-| P2 | 分享卡片 | `src/components/ui/ShareCard.vue` | — | ⏳ 待实现 |
-| P3 | 帮助中心 | `src/views/HelpCenterView.vue` | `/help-center` | ⏳ 待实现 |
-| P3 | 网络错误页 | `src/components/ui/NetworkError.vue` | — | ⏳ 待实现 |
+| P2 | 学习计划页 | `src/views/StudyPlanView.vue` | `/study-plan` | ✅ 已完成 |
+| P2 | 排行榜页 | `src/views/LeaderboardView.vue` | `/leaderboard` | ✅ 已完成 |
+| P2 | 社区页 | `src/views/CommunityView.vue` | `/community` | ✅ 已完成 |
+| P2 | 发布面经页 | `src/views/PostExperienceView.vue` | `/post-experience` | ✅ 已完成 |
+| P2 | 面经详情页 | `src/views/ExperienceDetailView.vue` | `/community/:id` | ✅ 已完成 |
+| P2 | 分享卡片 | `src/components/ui/ShareCard.vue` | — | ✅ 已完成 |
+| P3 | 帮助中心 | `src/views/HelpCenterView.vue` | `/help-center` | ✅ 已完成 |
+| P3 | 网络错误页 | `src/components/ui/NetworkError.vue` | — | ✅ 已完成 |
 
 ---
 
@@ -399,13 +353,14 @@ HelpCenterView.vue（新增）
 | 页面 | 增强内容 | 状态 |
 |---|---|---|
 | `InterviewView.vue` | 进度条（QuestionNavigator）+ Pause 遮罩 + 结束确认弹窗 + 题目导航 + InterviewTimer | ✅ 已完成 |
-| `FeedbackView.vue` | 增加「查看详细报告」入口 → `/detailed-feedback` | ✅ 已完成 |
+| `FeedbackView.vue` | 增加「查看详细报告」入口 → `/detailed-feedback`；增加「分享成绩」按钮 + ShareCard 弹窗；面试得分后增加 x/5 格式显示 | ✅ 已完成 |
 | `ProfileView.vue` | 增加「我的收藏」入口 → `/bookmarks` | ✅ 已完成 |
-| `HomeView.vue` | CTA 按钮改为跳转 `/job-detail`，推荐岗位卡片可点击进入详情 | ✅ 已完成 |
+| `HomeView.vue` | CTA 按钮改为跳转 `/job-detail`，推荐岗位卡片可点击进入详情；新增「学习成长」入口卡片区（学习计划 / 排行榜 / 面经社区） | ✅ 已完成 |
 | `JobsView.vue` | 确认选择后跳转 `/job-detail`（原为直接跳 Setup） | ✅ 已完成 |
 | `SetupView.vue` | 开始面试后跳转 `/pre-interview`（原为直接跳 Interview） | ✅ 已完成 |
-| `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ⏳ 待实现 |
-| `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume-edit` | ⏳ 待实现 |
+| `DetailedFeedbackView.vue` | 增加「分享成绩」按钮 + ShareCard 弹窗 | ✅ 已完成 |
+| `SettingsView.vue` | 增加「主题切换」「帮助中心」入口 | ✅ 已完成 |
+| `ResumeView.vue` | 修复「编辑简历」按钮跳转 → `/resume/edit`，从 localStorage 读取数据，同步展示 6 模块（新增项目经历 + 自我评价 section） | ✅ 已完成 |
 
 ---
 
@@ -422,14 +377,16 @@ HelpCenterView.vue（新增）
 | `TopicTag.vue` | 考察维度标签 | `src/components/ui/TopicTag.vue` | ✅ 已完成 |
 | `WaveformVisualizer.vue` | 声波动画（用于麦克风测试反馈） | `src/components/ui/WaveformVisualizer.vue` | ✅ 已完成 |
 | `PauseOverlay.vue` | 面试暂停遮罩（已内联至 InterviewView） | — | ⏳ 可选抽取 |
-| `ShareCard.vue` | 分享海报卡片 | `src/components/ui/ShareCard.vue` | ⏳ 待实现 |
-| `Toast.vue` | 全局轻量提示 | `src/components/ui/Toast.vue` | ⏳ 待实现 |
-| `SkeletonCard.vue` | 骨架屏卡片 | `src/components/ui/SkeletonCard.vue` | ⏳ 待实现 |
-| `SkeletonLine.vue` | 骨架屏文本行 | `src/components/ui/SkeletonLine.vue` | ⏳ 待实现 |
-| `NetworkError.vue` | 网络错误展示 | `src/components/ui/NetworkError.vue` | ⏳ 待实现 |
-| `EmptyState.vue` | 空状态插图 | `src/components/ui/EmptyState.vue` | ⏳ 待实现 |
-| `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现 |
-| `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现 |
+| `ShareCard.vue` | 分享海报卡片（浮层弹窗 + 3 模板 + 复制/保存） | `src/components/ui/ShareCard.vue` | ✅ 已完成 |
+| `Toast.vue` | 全局轻量提示 | `src/components/ui/Toast.vue` | ✅ 已完成 |
+| `SkeletonCard.vue` | 骨架屏卡片 | `src/components/ui/SkeletonCard.vue` | ✅ 已完成 |
+| `SkeletonLine.vue` | 骨架屏文本行 | `src/components/ui/SkeletonLine.vue` | ✅ 已完成 |
+| `NetworkError.vue` | 网络错误展示 | `src/components/ui/NetworkError.vue` | ✅ 已完成 |
+| `EmptyState.vue` | 空状态插图 | `src/components/ui/EmptyState.vue` | ✅ 已完成 |
+| `TagInput.vue` | 技能标签输入 | `src/components/ui/TagInput.vue` | ⏳ 待实现（未在需求列表，后续按需） |
+| `CalendarHeatmap.vue` | 打卡热图 | `src/components/ui/CalendarHeatmap.vue` | ⏳ 待实现（未在需求列表，后续按需） |
+| `resumeStore.ts` | 简历数据 localStorage 持久化（类型定义 + 默认数据 + CRUD 封装） | `src/utils/resumeStore.ts` | ✅ 已完成 |
+| `communityStore.ts` | 面经社区数据响应式状态管理（预设数据 + 点赞/评论/发布） | `src/utils/communityStore.ts` | ✅ 已完成 |
 
 ---
 
@@ -438,20 +395,33 @@ HelpCenterView.vue（新增）
 ### 路线 A：强化面试核心闭环 ✅ 已完成
 > Job Detail → Pre-Interview Check → Interview Progress / Pause → Detailed Feedback → Bookmark
 
-**核心链路已全部打通**：
+**路线 A 所有需求已全部交付**。核心链路：
 - `Home` → `/job-detail`（JobDetailView）→ `/pre-interview`（PreInterviewView）→ `/interview`（InterviewView，含进度导航 + 暂停 + 确认弹窗）→ `/feedback`（FeedbackView）→ `/detailed-feedback`（DetailedFeedbackView，含逐题回顾 + 收藏）→ `/bookmarks`（BookmarkView）← `/profile`（ProfileView）
+- `Profile` → `/resume/edit`（ResumeEditView，6 模块编辑 + localStorage 持久化）→ `/resume`（ResumeView，同步展示）
 
-**待收官**：ResumeEditView（P0 3.4）是路线 A 的最后一个缺口。
+### 路线 B：增长与留存 ✅ 已完成
+> Study Plan → Leaderboard → Community（含 PostExperience + ExperienceDetail）→ Share Card
 
-### 路线 B：完善个人资料与留存 ⏳ 待开始
-> Resume Edit → Study Plan / Calendar → Leaderboard → Share Card
+所有 P2 需求已交付，Home 首页新增「学习成长」入口卡片区。
+新增 5 个页面文件：StudyPlanView、LeaderboardView、CommunityView、PostExperienceView、ExperienceDetailView。
+新增 1 个组件：ShareCard（浮层弹窗）。
+新增 1 个 store：communityStore（面经数据会话内共享）。
+FeedbackView 和 DetailedFeedbackView 均已集成 ShareCard。
 
-适合想把原型做得更像完整上线产品的情况。
+### 路线 C：系统体验补齐 ✅ 已完成
+> Dark Mode → Empty States → Loading / Error → Help Center
 
-### 路线 C：系统体验补齐 ⏳ 待开始
-> Empty States → Loading / Error → Dark Mode → Search
+**路线 C 所有 P3 需求已全部交付**。
+- `SettingsView` ← 深色模式 toggle + 帮助中心入口
+- 5 个列表视图（History、Notifications、Bookmarks、Jobs、Community）接入 `EmptyState` 空状态组件
+- 4 个新增 UI 组件：`Toast`（轻量提示）、`SkeletonCard`（卡片骨架屏）、`SkeletonLine`（文本骨架屏）、`NetworkError`（网络异常页）
+- 1 个新增页面：`HelpCenterView`（帮助中心/FAQ，路由 `/help-center`）
+- 暗黑模式仅作用于手机屏幕区域（`.screen[data-theme="dark"]`），不影响浏览器其余部分
+- 20 个图标组件统一改为 `currentColor`，暗黑模式下自动适配
+- 全局 Tailwind gray 文字类在暗黑模式下自动镜像翻转
 
-适合做 Demo 或测试展示前的最终 polish。
+### 路线 D：搜索补齐 ⏳ 待开始
+> Search（P1 唯一剩余项）
 
 ---
 

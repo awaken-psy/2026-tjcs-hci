@@ -181,8 +181,6 @@ function finalizeRecognition() {
   }, 600)
 }
 
-let currentUtterance: SpeechSynthesisUtterance | null = null
-
 function speakText(text: string) {
   if (!hasSynthesis) return
   speechSynthesis.cancel()
@@ -200,22 +198,17 @@ function speakText(text: string) {
 
   utterance.onend = () => {
     voiceState.value = 'idle'
-    currentUtterance = null
   }
 
   utterance.onerror = () => {
     voiceState.value = 'idle'
-    currentUtterance = null
   }
-
-  currentUtterance = utterance
   speechSynthesis.speak(utterance)
 }
 
 function stopSpeaking() {
   speechSynthesis.cancel()
   voiceState.value = 'idle'
-  currentUtterance = null
 }
 
 function toggleVoice() {
@@ -580,7 +573,7 @@ onUnmounted(() => {
   display: inline-block;
   width: 2px;
   height: 1em;
-  background: #fff;
+  background: var(--fg);
   margin-left: 2px;
   vertical-align: text-bottom;
   animation: blink 0.6s step-end infinite;

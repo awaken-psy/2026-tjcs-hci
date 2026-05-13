@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import ScreenView from '@/components/layout/ScreenView.vue'
 import AppCard from '@/components/ui/AppCard.vue'
@@ -7,51 +8,49 @@ import BackButton from '@/components/ui/BackButton.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import Tag from '@/components/ui/Tag.vue'
 import UserIcon from '@/components/icons/UserIcon.vue'
+import { loadResume } from '@/utils/resumeStore'
 
 const router = useRouter()
+const resume = loadResume()
 
-interface Education {
-  school: string
-  degree: string
-  period: string
-}
+const info = computed(() => ({
+  name: resume.personal.name,
+  email: resume.personal.email,
+  phone: resume.personal.phone,
+  location: resume.personal.location,
+}))
 
-interface Experience {
-  title: string
-  company: string
-  period: string
-  desc: string
-}
+const firstEdu = resume.education[0]
+const schoolInfo = computed(() => ({
+  school: firstEdu?.school || '',
+  major: firstEdu?.major || '',
+  degree: firstEdu ? `${firstEdu.degree} · 大四` : '',
+}))
 
-const info = {
-  name: '张明',
-  school: 'XX大学',
-  major: '计算机科学与技术',
-  degree: '本科 · 大四',
-  email: 'zhangming@example.com',
-  phone: '138****8888',
-}
+const educationList = computed(() => resume.education.map(e => ({
+  id: e.id,
+  school: e.school,
+  degree: `${e.major} · ${e.degree}`,
+  period: `${e.startDate} - ${e.endDate}`,
+})))
 
-const educationList: Education[] = [
-  { school: 'XX大学', degree: '计算机科学与技术 · 本科', period: '2022.09 - 2026.06' },
-]
+const experienceList = computed(() => resume.experience.map(e => ({
+  id: e.id,
+  title: e.title,
+  company: e.company,
+  period: `${e.startDate} - ${e.endDate}`,
+  desc: e.description,
+})))
 
-const experienceList: Experience[] = [
-  {
-    title: '前端开发实习生',
-    company: '某科技有限公司',
-    period: '2025.06 - 2025.09',
-    desc: '参与内部CRM系统重构，使用Vue 3 + TypeScript完成5个核心模块开发，页面加载性能提升40%。',
-  },
-  {
-    title: '前端开发实习生',
-    company: '某互联网公司',
-    period: '2025.01 - 2025.04',
-    desc: '负责移动端H5活动页面开发，累计服务用户超50万，获得部门季度优秀实习生。',
-  },
-]
+const projectList = computed(() => resume.projects.map(p => ({
+  id: p.id,
+  name: p.name,
+  role: p.role,
+  period: `${p.startDate} - ${p.endDate}`,
+  desc: p.description,
+})))
 
-const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sass', 'Git', 'Webpack']
+const skills = computed(() => resume.skills)
 </script>
 
 <template>
@@ -71,8 +70,8 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
           </Avatar>
           <div>
             <div class="h3">{{ info.name }}</div>
-            <div class="meta-row">{{ info.school }} · {{ info.major }}</div>
-            <div class="meta-row">{{ info.degree }}</div>
+            <div class="meta-row">{{ schoolInfo.school }} · {{ schoolInfo.major }}</div>
+            <div class="meta-row">{{ schoolInfo.degree }}</div>
           </div>
         </div>
         <div class="contacts" style="margin-top: 12px;">
@@ -83,6 +82,10 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
           <div class="contact-item">
             <span class="meta">手机</span>
             <span class="contact-val">{{ info.phone }}</span>
+          </div>
+          <div class="contact-item">
+            <span class="meta">所在地</span>
+            <span class="contact-val">{{ info.location }}</span>
           </div>
         </div>
       </section>
@@ -96,7 +99,7 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
 
       <section data-od-id="resume-edu">
         <p class="section-label">教育背景</p>
-        <AppCard v-for="e in educationList" :key="e.school" padding="14px 16px" style="margin-bottom: 8px;">
+        <AppCard v-for="e in educationList" :key="e.id" padding="14px 16px" style="margin-bottom: 8px;">
           <div class="row-between">
             <div>
               <div class="item-title">{{ e.school }}</div>
@@ -109,7 +112,7 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
 
       <section data-od-id="resume-exp">
         <p class="section-label">实习经历</p>
-        <AppCard v-for="e in experienceList" :key="e.title + e.period" padding="14px 16px" style="margin-bottom: 8px;">
+        <AppCard v-for="e in experienceList" :key="e.id" padding="14px 16px" style="margin-bottom: 8px;">
           <div class="row-between" style="margin-bottom: 6px;">
             <div class="item-title">{{ e.title }}</div>
             <span class="meta">{{ e.period }}</span>
@@ -117,10 +120,31 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
           <div class="meta" style="margin-bottom: 6px;">{{ e.company }}</div>
           <p class="exp-desc">{{ e.desc }}</p>
         </AppCard>
+        <p v-if="!experienceList.length" class="empty-hint">暂无实习经历</p>
+      </section>
+
+      <section data-od-id="resume-projects">
+        <p class="section-label">项目经历</p>
+        <AppCard v-for="p in projectList" :key="p.id" padding="14px 16px" style="margin-bottom: 8px;">
+          <div class="row-between" style="margin-bottom: 6px;">
+            <div class="item-title">{{ p.name }}</div>
+            <span class="meta">{{ p.period }}</span>
+          </div>
+          <div class="meta" style="margin-bottom: 6px;">{{ p.role }}</div>
+          <p class="exp-desc">{{ p.desc }}</p>
+        </AppCard>
+        <p v-if="!projectList.length" class="empty-hint">暂无项目经历</p>
+      </section>
+
+      <section v-if="resume.summary" data-od-id="resume-summary">
+        <p class="section-label">自我评价</p>
+        <AppCard padding="14px 16px" style="margin-bottom: 8px;">
+          <p class="summary-text">{{ resume.summary }}</p>
+        </AppCard>
       </section>
 
       <div style="padding-bottom: 24px;">
-        <AppButton variant="secondary">编辑简历</AppButton>
+        <AppButton variant="secondary" @click="router.push('/resume/edit')">编辑简历</AppButton>
       </div>
     </div>
   </ScreenView>
@@ -213,8 +237,20 @@ const skills = ['JavaScript', 'TypeScript', 'Vue 3', 'React', 'Node.js', 'CSS/Sa
   font-weight: 600;
 }
 
+.empty-hint {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+}
+
 .exp-desc {
   margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.summary-text {
   font-size: 13px;
   color: var(--muted);
   line-height: 1.55;
