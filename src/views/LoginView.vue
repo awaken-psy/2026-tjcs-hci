@@ -16,7 +16,7 @@ function login() {
 }
 
 function getCode() {
-  alert('获取验证码')
+  router.push({ path: '/sms-code', query: { phone: phone.value } })
 }
 </script>
 

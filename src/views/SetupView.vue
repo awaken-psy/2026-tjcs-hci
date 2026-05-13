@@ -27,7 +27,7 @@ function goBack() {
 }
 
 function startInterview() {
-  router.push('/interview')
+  router.push('/pre-interview')
 }
 </script>
 

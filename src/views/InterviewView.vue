@@ -1,19 +1,77 @@
 <script setup lang="ts">
-import { ref, onUnmounted, nextTick, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import type { ChatMessage } from '@/types'
 import AppButton from '@/components/ui/AppButton.vue'
 import ChatBubble from '@/components/ui/ChatBubble.vue'
+import InterviewTimer from '@/components/ui/InterviewTimer.vue'
+import QuestionNavigator from '@/components/ui/QuestionNavigator.vue'
 import MicIcon from '@/components/icons/MicIcon.vue'
 
 const router = useRouter()
 
-// ── Feature Detection ──
+// ═══ Interview Progress (路线 A) ═══
+const totalQuestions = 10
+const currentQuestion = ref(3)
+const seconds = ref(522)
+const isPaused = ref(false)
+const showQuitConfirm = ref(false)
+const answeredQuestions = ref([1, 2])
+
+let timerId: ReturnType<typeof setInterval> | null = null
+
+function startTimer() {
+  timerId = setInterval(() => {
+    if (!isPaused.value) seconds.value++
+  }, 1000)
+}
+
+function pause() {
+  isPaused.value = true
+  // 暂停时停止所有语音活动
+  if (hasSynthesis) speechSynthesis.cancel()
+  if (recognition) recognition.abort()
+}
+
+function resume() {
+  isPaused.value = false
+}
+
+function confirmQuit() {
+  showQuitConfirm.value = true
+}
+
+function cancelQuit() {
+  showQuitConfirm.value = false
+}
+
+function quitInterview() {
+  showQuitConfirm.value = false
+  isPaused.value = false
+  if (timerId) clearInterval(timerId)
+  speechSynthesis.cancel()
+  if (recognition) recognition.abort()
+  router.push('/feedback')
+}
+
+function goPrev() {
+  if (currentQuestion.value > 1) currentQuestion.value--
+}
+
+function goNext() {
+  if (currentQuestion.value < totalQuestions) {
+    if (!answeredQuestions.value.includes(currentQuestion.value)) {
+      answeredQuestions.value.push(currentQuestion.value)
+    }
+    currentQuestion.value++
+  }
+}
+
+// ═══ Voice Features (main 分支) ═══
 const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
 const hasRecognition = !!SpeechRecognition
 const hasSynthesis = 'speechSynthesis' in window
 
-// ── Chat State ──
 const messages = ref<ChatMessage[]>([
   { role: 'ai', content: '你好，欢迎参加今天的面试。请先做一个简短的自我介绍，时间控制在 2 分钟以内。' },
   { role: 'user', content: '您好，我是张明，XX大学计算机专业大四学生，有过两段前端实习经历...' },
@@ -22,7 +80,6 @@ const messages = ref<ChatMessage[]>([
 
 const chatArea = ref<HTMLElement>()
 
-// ── AI Follow-up Pool ──
 const aiFollowUps = [
   '不错。能具体说说你在这个项目中使用的技术栈和选型理由吗？',
   '了解了。你如何看待团队协作中的 Code Review？有什么实践经验吗？',
@@ -40,11 +97,9 @@ function getNextAiMessage(): string {
   return msg
 }
 
-// ── Voice State ──
 type VoiceState = 'idle' | 'recording' | 'transcribing' | 'speaking'
 const voiceState = ref<VoiceState>('idle')
 
-// ── Speech Recognition ──
 let recognition: InstanceType<typeof SpeechRecognition> | null = null
 
 function initRecognition() {
@@ -65,7 +120,6 @@ function initRecognition() {
         interim += transcript
       }
     }
-    // Update the last user message with live transcript
     if (final) {
       recognitionFinalText += final
     }
@@ -84,7 +138,6 @@ function initRecognition() {
   }
 
   rec.onend = () => {
-    // Auto-stopped (silence timeout or manual) → finalize
     if (voiceState.value === 'recording') {
       finalizeRecognition()
     }
@@ -115,28 +168,23 @@ function stopRecording() {
 
 function finalizeRecognition() {
   voiceState.value = 'idle'
-  // Trim the last message: remove if empty
   const last = messages.value[messages.value.length - 1]
   if (last && last.role === 'user' && !last.content.trim()) {
     messages.value.pop()
     return
   }
-  // AI responds after a short delay
   setTimeout(() => {
     const aiMsg = getNextAiMessage()
     messages.value.push({ role: 'ai', content: aiMsg })
     scrollToBottom()
-    // Auto-speak the AI response
     speakText(aiMsg)
   }, 600)
 }
 
-// ── Speech Synthesis (TTS) ──
 let currentUtterance: SpeechSynthesisUtterance | null = null
 
 function speakText(text: string) {
   if (!hasSynthesis) return
-  // Cancel any ongoing speech
   speechSynthesis.cancel()
 
   voiceState.value = 'speaking'
@@ -146,7 +194,6 @@ function speakText(text: string) {
   utterance.rate = 1.05
   utterance.pitch = 1.0
 
-  // Try to pick a Chinese voice
   const voices = speechSynthesis.getVoices()
   const zhVoice = voices.find(v => v.lang.startsWith('zh'))
   if (zhVoice) utterance.voice = zhVoice
@@ -171,7 +218,6 @@ function stopSpeaking() {
   currentUtterance = null
 }
 
-// ── UI Actions ──
 function toggleVoice() {
   if (voiceState.value === 'speaking') {
     stopSpeaking()
@@ -182,13 +228,10 @@ function toggleVoice() {
   } else if (voiceState.value === 'recording') {
     stopRecording()
   }
-  // transcribing state → ignore
 }
 
 function endInterview() {
-  speechSynthesis.cancel()
-  if (recognition) recognition.abort()
-  router.push('/feedback')
+  pause()
 }
 
 function scrollToBottom() {
@@ -199,9 +242,8 @@ function scrollToBottom() {
   })
 }
 
-// ── Lifecycle ──
 onMounted(() => {
-  // Warm up voice list (some browsers load voices async)
+  startTimer()
   if (hasSynthesis) {
     speechSynthesis.getVoices()
     speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices()
@@ -209,6 +251,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (timerId) clearInterval(timerId)
   speechSynthesis.cancel()
   if (recognition) recognition.abort()
 })
@@ -216,26 +259,58 @@ onUnmounted(() => {
 
 <template>
   <div class="screen-view">
+    <!-- Header -->
     <div class="interview-header">
       <div class="row" style="gap: 8px;">
         <span class="live-dot"></span>
         <span style="font-size: 13px; font-weight: 500;">面试中</span>
       </div>
-      <span class="timer">08:42</span>
+      <InterviewTimer :seconds="seconds" :paused="isPaused" />
     </div>
 
+    <!-- Navigator -->
+    <div class="navigator-wrap">
+      <QuestionNavigator
+        :total="totalQuestions"
+        :current="currentQuestion"
+        :answered="answeredQuestions"
+        show-status
+        @navigate="(i: number) => currentQuestion = i"
+      />
+    </div>
+
+    <!-- Chat Area -->
     <div ref="chatArea" class="chat-area">
       <template v-for="(msg, i) in messages" :key="i">
         <ChatBubble :role="msg.role">
           {{ msg.content }}
           <span v-if="msg.role === 'user' && i === messages.length - 1 && voiceState === 'recording'" class="cursor"></span>
-          <span v-if="msg.role === 'ai' && i === messages.length - 1 && voiceState === 'speaking'" class="speaking-indicator">🔊</span>
+          <span v-if="msg.role === 'ai' && i === messages.length - 1 && voiceState === 'speaking'" class="speaking-indicator">&#x1f50a;</span>
         </ChatBubble>
       </template>
     </div>
 
+    <!-- Bottom Controls -->
     <div class="controls">
-      <div class="row-between">
+      <div class="nav-row">
+        <AppButton
+          variant="ghost"
+          style="flex: 1;"
+          :style="{ opacity: currentQuestion > 1 ? 1 : 0.4 }"
+          @click="goPrev"
+        >
+          上一题
+        </AppButton>
+        <AppButton
+          variant="ghost"
+          style="flex: 1;"
+          :style="{ opacity: currentQuestion < totalQuestions ? 1 : 0.4 }"
+          @click="goNext"
+        >
+          下一题
+        </AppButton>
+      </div>
+      <div class="row-between" style="margin-top: 10px;">
         <AppButton variant="secondary" style="flex: 1;" @click="endInterview">结束面试</AppButton>
         <button
           :class="['voice-btn', voiceState]"
@@ -257,6 +332,32 @@ onUnmounted(() => {
       <p v-else-if="voiceState === 'speaking'" class="hint">AI 正在朗读，点击可停止</p>
       <p v-else class="hint">点击麦克风开始语音回答</p>
     </div>
+
+    <!-- Pause Overlay -->
+    <div v-if="isPaused" class="pause-overlay" @click.self="resume">
+      <div class="pause-card">
+        <h2 class="pause-title">面试已暂停</h2>
+        <p class="pause-meta">当前进度：第 {{ currentQuestion }} / {{ totalQuestions }} 题</p>
+        <InterviewTimer class="pause-timer" :seconds="seconds" paused />
+
+        <div class="pause-actions">
+          <AppButton @click="resume">继续面试</AppButton>
+          <AppButton variant="secondary" style="color: #dc2626; border-color: oklch(55% 0.16 25 / 0.3);" @click="confirmQuit">结束面试</AppButton>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quit Confirm Modal -->
+    <div v-if="showQuitConfirm" class="modal-overlay" @click.self="cancelQuit">
+      <div class="modal-card">
+        <p class="modal-title">确认结束面试？</p>
+        <p class="modal-desc">结束将保存当前进度，可在历史记录中查看报告。</p>
+        <div class="modal-actions">
+          <AppButton variant="secondary" @click="cancelQuit">取消</AppButton>
+          <AppButton @click="quitInterview">确认结束</AppButton>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -266,6 +367,7 @@ onUnmounted(() => {
   flex-direction: column;
   min-height: 100%;
   flex: 1;
+  position: relative;
 }
 
 .interview-header {
@@ -295,11 +397,9 @@ onUnmounted(() => {
   50% { opacity: 0.4; }
 }
 
-.timer {
-  font-family: var(--font-mono);
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--accent);
+.navigator-wrap {
+  padding: 10px 20px 6px;
+  flex-shrink: 0;
 }
 
 .chat-area {
@@ -315,6 +415,11 @@ onUnmounted(() => {
 .controls {
   padding: 0 20px 12px;
   flex-shrink: 0;
+}
+
+.nav-row {
+  display: flex;
+  gap: 10px;
 }
 
 .row-between {
@@ -385,6 +490,90 @@ onUnmounted(() => {
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
+}
+
+/* Pause Overlay */
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 20px;
+}
+
+.pause-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+}
+
+.pause-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.pause-meta {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
+.pause-timer {
+  display: block;
+  font-size: 28px;
+  margin-bottom: 20px;
+}
+
+.pause-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Modal */
+.modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  z-index: 60;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--surface);
+  border-radius: var(--radius-card);
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 300px;
+}
+
+.modal-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.modal-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
 }
 
 .cursor {

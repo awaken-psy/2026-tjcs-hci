@@ -22,6 +22,10 @@ function goHome() {
 function retry() {
   router.push('/setup')
 }
+
+function goDetailed() {
+  router.push('/detailed-feedback')
+}
 </script>
 
 <template>
@@ -56,8 +60,11 @@ function retry() {
     </AppCard>
 
     <div class="stack" style="gap: 10px;">
-      <AppButton @click="goHome">回到首页</AppButton>
+      <AppButton @click="goDetailed">
+        查看详细报告
+      </AppButton>
       <AppButton variant="secondary" @click="retry">再来一次</AppButton>
+      <AppButton variant="ghost" @click="goHome">回到首页</AppButton>
     </div>
     </div>
   </ScreenView>

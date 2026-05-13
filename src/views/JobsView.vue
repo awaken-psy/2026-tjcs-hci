@@ -34,7 +34,7 @@ function goBack() {
 }
 
 function confirm() {
-  router.push('/setup')
+  router.push('/job-detail?from=jobs')
 }
 </script>
 
