@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import DeviceFrame from './components/layout/DeviceFrame.vue'
 import ScreenSwitcher from './components/layout/ScreenSwitcher.vue'
 
 const route = useRoute()
+
 const screens = [
   { id: 'Splash', path: '/' },
   { id: 'Onboarding 1', path: '/onboarding-1' },
@@ -17,6 +19,30 @@ const screens = [
   { id: 'History', path: '/history' },
   { id: 'Profile', path: '/profile' },
 ]
+
+const routeOrder = Object.fromEntries(screens.map((s, i) => [s.path, i]))
+
+// Special transitions for specific route pairs
+const specialTransitions: Record<string, string> = {
+  '/->/onboarding-1': 'fade',
+  '/->/login': 'fade',
+}
+
+const transitionName = ref('slide-left')
+
+watch(
+  () => route.path,
+  (to, from) => {
+    const key = `${from}->${to}`
+    if (specialTransitions[key]) {
+      transitionName.value = specialTransitions[key]
+      return
+    }
+    const toIdx = routeOrder[to] ?? 0
+    const fromIdx = routeOrder[from] ?? 0
+    transitionName.value = toIdx >= fromIdx ? 'slide-left' : 'slide-right'
+  },
+)
 </script>
 
 <template>
@@ -32,7 +58,11 @@ const screens = [
     <ScreenSwitcher :screens="screens" />
 
     <DeviceFrame>
-      <router-view />
+      <router-view v-slot="{ Component }">
+        <Transition :name="transitionName" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </Transition>
+      </router-view>
     </DeviceFrame>
   </div>
 </template>
