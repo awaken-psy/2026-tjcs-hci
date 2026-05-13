@@ -47,3 +47,45 @@
     -webkit-font-smoothing: antialiased;
   }
 }
+
+/* ── Page Transitions ── */
+
+/* Slide Left (forward / push) */
+.slide-left-enter-active,
+.slide-left-leave-active {
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-left-enter-from {
+  transform: translateX(40px);
+  opacity: 0;
+}
+.slide-left-leave-to {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+
+/* Slide Right (backward / pop) */
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.slide-right-enter-from {
+  transform: translateX(-24px);
+  opacity: 0;
+}
+.slide-right-leave-to {
+  transform: translateX(40px);
+  opacity: 0;
+}
+
+/* Fade (splash → content) */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.4s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
