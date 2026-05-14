@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { ChatMessage } from '@/types'
+import { BrowserAudioRecorder, canRecordAudio } from '@/utils/audioRecorder'
+import { requestInterviewReply, transcribeAnswer } from '@/utils/interviewApi'
 import AppButton from '@/components/ui/AppButton.vue'
 import ChatBubble from '@/components/ui/ChatBubble.vue'
 import InterviewTimer from '@/components/ui/InterviewTimer.vue'
@@ -10,8 +12,8 @@ import MicIcon from '@/components/icons/MicIcon.vue'
 
 const router = useRouter()
 
-// ═══ Interview Progress (路线 A) ═══
 const totalQuestions = 10
+const maxRecordingSeconds = 60
 const currentQuestion = ref(3)
 const seconds = ref(522)
 const isPaused = ref(false)
@@ -28,9 +30,7 @@ function startTimer() {
 
 function pause() {
   isPaused.value = true
-  // 暂停时停止所有语音活动
-  if (hasSynthesis) speechSynthesis.cancel()
-  if (recognition) recognition.abort()
+  stopAudioActivity()
 }
 
 function resume() {
@@ -49,8 +49,7 @@ function quitInterview() {
   showQuitConfirm.value = false
   isPaused.value = false
   if (timerId) clearInterval(timerId)
-  speechSynthesis.cancel()
-  if (recognition) recognition.abort()
+  stopAudioActivity()
   router.push('/feedback')
 }
 
@@ -67,124 +66,122 @@ function goNext() {
   }
 }
 
-// ═══ Voice Features (main 分支) ═══
-const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
-const hasRecognition = !!SpeechRecognition
+const hasRecorder = canRecordAudio()
 const hasSynthesis = 'speechSynthesis' in window
 
 const messages = ref<ChatMessage[]>([
-  { role: 'ai', content: '你好，欢迎参加今天的面试。请先做一个简短的自我介绍，时间控制在 2 分钟以内。' },
+  { role: 'ai', content: '你好，欢迎参加今天的面试。请先做一个简短的自我介绍，时间控制在 1 分钟以内。' },
   { role: 'user', content: '您好，我是张明，XX大学计算机专业大四学生，有过两段前端实习经历...' },
   { role: 'ai', content: '好的。你在实习中遇到过最具挑战的技术问题是什么？你是如何解决的？' },
 ])
 
 const chatArea = ref<HTMLElement>()
 
-const aiFollowUps = [
-  '不错。能具体说说你在这个项目中使用的技术栈和选型理由吗？',
-  '了解了。你如何看待团队协作中的 Code Review？有什么实践经验吗？',
-  '很好。如果让你重新设计这个系统，你会做哪些改进？',
-  '谢谢你的分享。你对加班文化怎么看？',
-  '有意思。你能讲讲你遇到的最难调试的一个 Bug 吗？',
-  '明白了。你觉得前端未来三年的发展趋势是什么？',
-  '好的。你在学习新技术时通常采用什么方法？',
-]
-let followUpIndex = 0
-
-function getNextAiMessage(): string {
-  const msg = aiFollowUps[followUpIndex % aiFollowUps.length]
-  followUpIndex++
-  return msg
-}
-
-type VoiceState = 'idle' | 'recording' | 'transcribing' | 'speaking'
+type VoiceState = 'idle' | 'recording' | 'transcribing' | 'thinking' | 'speaking' | 'error'
 const voiceState = ref<VoiceState>('idle')
+const errorMessage = ref('')
+const recordingSeconds = ref(0)
 
-let recognition: InstanceType<typeof SpeechRecognition> | null = null
+let recorder: BrowserAudioRecorder | null = null
+let recordingTimer: ReturnType<typeof setInterval> | null = null
 
-function initRecognition() {
-  if (!hasRecognition) return null
-  const rec = new SpeechRecognition()
-  rec.lang = 'zh-CN'
-  rec.continuous = true
-  rec.interimResults = true
-
-  rec.onresult = (e: any) => {
-    let interim = ''
-    let final = ''
-    for (let i = e.resultIndex; i < e.results.length; i++) {
-      const transcript = e.results[i][0].transcript
-      if (e.results[i].isFinal) {
-        final += transcript
-      } else {
-        interim += transcript
-      }
-    }
-    if (final) {
-      recognitionFinalText += final
-    }
-    const displayText = recognitionFinalText + interim
-    if (messages.value.length > 0) {
-      messages.value[messages.value.length - 1].content = displayText
-    }
-    scrollToBottom()
+const voiceHint = computed(() => {
+  if (!hasRecorder) return '当前浏览器不支持录音，请使用新版 Chrome'
+  if (errorMessage.value) return errorMessage.value
+  if (voiceState.value === 'recording') {
+    return `正在录音 ${recordingSeconds.value}s / ${maxRecordingSeconds}s，点击停止`
   }
+  if (voiceState.value === 'transcribing') return '正在转写语音...'
+  if (voiceState.value === 'thinking') return 'AI 正在生成追问...'
+  if (voiceState.value === 'speaking') return 'AI 正在朗读，点击可停止'
+  return '点击麦克风开始语音回答'
+})
 
-  rec.onerror = (e: any) => {
-    console.warn('SpeechRecognition error:', e.error)
-    if (e.error === 'no-speech' || e.error === 'aborted') {
+const isVoiceBusy = computed(() => {
+  return voiceState.value === 'transcribing' || voiceState.value === 'thinking'
+})
+
+function beginRecordingTimer() {
+  recordingSeconds.value = 0
+  recordingTimer = setInterval(() => {
+    recordingSeconds.value++
+    if (recordingSeconds.value >= maxRecordingSeconds) {
       stopRecording()
     }
-  }
-
-  rec.onend = () => {
-    if (voiceState.value === 'recording') {
-      finalizeRecognition()
-    }
-  }
-
-  return rec
+  }, 1000)
 }
 
-let recognitionFinalText = ''
-
-function startRecording() {
-  if (!hasRecognition) return
-  recognitionFinalText = ''
-  messages.value.push({ role: 'user', content: '' })
-  scrollToBottom()
-
-  recognition = initRecognition()
-  recognition!.start()
-  voiceState.value = 'recording'
+function clearRecordingTimer() {
+  if (recordingTimer) {
+    clearInterval(recordingTimer)
+    recordingTimer = null
+  }
 }
 
-function stopRecording() {
-  if (recognition) {
-    recognition.stop()
+async function startRecording() {
+  if (!hasRecorder || isVoiceBusy.value) return
+
+  try {
+    errorMessage.value = ''
+    stopSpeaking()
+    recorder = new BrowserAudioRecorder()
+    await recorder.start()
+    voiceState.value = 'recording'
+    beginRecordingTimer()
+  } catch (error) {
+    recorder = null
+    voiceState.value = 'error'
+    errorMessage.value = error instanceof Error
+      ? error.message
+      : '无法访问麦克风，请检查浏览器权限。'
   }
-  finalizeRecognition()
 }
 
-function finalizeRecognition() {
-  voiceState.value = 'idle'
-  const last = messages.value[messages.value.length - 1]
-  if (last && last.role === 'user' && !last.content.trim()) {
-    messages.value.pop()
-    return
-  }
-  setTimeout(() => {
-    const aiMsg = getNextAiMessage()
-    messages.value.push({ role: 'ai', content: aiMsg })
+async function stopRecording() {
+  if (voiceState.value !== 'recording' || !recorder) return
+
+  clearRecordingTimer()
+  voiceState.value = 'transcribing'
+
+  try {
+    const audio = await recorder.stop()
+    recorder = null
+
+    const text = await transcribeAnswer(audio)
+    const userMessage: ChatMessage = { role: 'user', content: text }
+    messages.value.push(userMessage)
     scrollToBottom()
-    speakText(aiMsg)
-  }, 600)
+
+    voiceState.value = 'thinking'
+    const aiMessage = await requestInterviewReply({
+      messages: messages.value,
+      questionIndex: currentQuestion.value,
+      totalQuestions,
+      jobTitle: '前端开发工程师',
+      level: '中级',
+    })
+
+    messages.value.push({ role: 'ai', content: aiMessage })
+    if (!answeredQuestions.value.includes(currentQuestion.value)) {
+      answeredQuestions.value.push(currentQuestion.value)
+    }
+    scrollToBottom()
+    speakText(aiMessage)
+  } catch (error) {
+    voiceState.value = 'error'
+    errorMessage.value = error instanceof Error
+      ? error.message
+      : '语音处理失败，请稍后重试。'
+  }
 }
 
 function speakText(text: string) {
-  if (!hasSynthesis) return
-  speechSynthesis.cancel()
+  if (!hasSynthesis) {
+    voiceState.value = 'idle'
+    return
+  }
 
+  speechSynthesis.cancel()
   voiceState.value = 'speaking'
 
   const utterance = new SpeechSynthesisUtterance(text)
@@ -193,7 +190,7 @@ function speakText(text: string) {
   utterance.pitch = 1.0
 
   const voices = speechSynthesis.getVoices()
-  const zhVoice = voices.find(v => v.lang.startsWith('zh'))
+  const zhVoice = voices.find((voice) => voice.lang.startsWith('zh'))
   if (zhVoice) utterance.voice = zhVoice
 
   utterance.onend = () => {
@@ -203,12 +200,29 @@ function speakText(text: string) {
   utterance.onerror = () => {
     voiceState.value = 'idle'
   }
+
   speechSynthesis.speak(utterance)
 }
 
 function stopSpeaking() {
-  speechSynthesis.cancel()
-  voiceState.value = 'idle'
+  if (hasSynthesis) {
+    speechSynthesis.cancel()
+  }
+  if (voiceState.value === 'speaking') {
+    voiceState.value = 'idle'
+  }
+}
+
+function stopAudioActivity() {
+  clearRecordingTimer()
+  if (recorder) {
+    recorder.abort()
+    recorder = null
+  }
+  stopSpeaking()
+  if (voiceState.value !== 'error') {
+    voiceState.value = 'idle'
+  }
 }
 
 function toggleVoice() {
@@ -216,10 +230,12 @@ function toggleVoice() {
     stopSpeaking()
     return
   }
-  if (voiceState.value === 'idle') {
-    startRecording()
-  } else if (voiceState.value === 'recording') {
+  if (voiceState.value === 'recording') {
     stopRecording()
+    return
+  }
+  if (voiceState.value === 'idle' || voiceState.value === 'error') {
+    startRecording()
   }
 }
 
@@ -245,14 +261,12 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (timerId) clearInterval(timerId)
-  speechSynthesis.cancel()
-  if (recognition) recognition.abort()
+  stopAudioActivity()
 })
 </script>
 
 <template>
   <div class="screen-view">
-    <!-- Header -->
     <div class="interview-header">
       <div class="row" style="gap: 8px;">
         <span class="live-dot"></span>
@@ -261,7 +275,6 @@ onUnmounted(() => {
       <InterviewTimer :seconds="seconds" :paused="isPaused" />
     </div>
 
-    <!-- Navigator -->
     <div class="navigator-wrap">
       <QuestionNavigator
         :total="totalQuestions"
@@ -272,18 +285,15 @@ onUnmounted(() => {
       />
     </div>
 
-    <!-- Chat Area -->
     <div ref="chatArea" class="chat-area">
       <template v-for="(msg, i) in messages" :key="i">
         <ChatBubble :role="msg.role">
           {{ msg.content }}
-          <span v-if="msg.role === 'user' && i === messages.length - 1 && voiceState === 'recording'" class="cursor"></span>
-          <span v-if="msg.role === 'ai' && i === messages.length - 1 && voiceState === 'speaking'" class="speaking-indicator">&#x1f50a;</span>
+          <span v-if="msg.role === 'ai' && i === messages.length - 1 && voiceState === 'speaking'" class="speaking-indicator">🔊</span>
         </ChatBubble>
       </template>
     </div>
 
-    <!-- Bottom Controls -->
     <div class="controls">
       <div class="nav-row">
         <AppButton
@@ -307,6 +317,7 @@ onUnmounted(() => {
         <AppButton variant="secondary" style="flex: 1;" @click="endInterview">结束面试</AppButton>
         <button
           :class="['voice-btn', voiceState]"
+          :disabled="isVoiceBusy"
           :aria-label="voiceState === 'idle' ? '语音回答' : voiceState === 'recording' ? '停止录音' : voiceState === 'speaking' ? '停止朗读' : '处理中'"
           @click="toggleVoice"
         >
@@ -319,14 +330,9 @@ onUnmounted(() => {
           <span v-if="voiceState === 'recording'" class="voice-ring"></span>
         </button>
       </div>
-      <p v-if="!hasRecognition" class="hint warn">当前浏览器不支持语音识别，请使用 Chrome</p>
-      <p v-else-if="voiceState === 'recording'" class="hint">正在聆听，点击停止...</p>
-      <p v-else-if="voiceState === 'transcribing'" class="hint">识别中...</p>
-      <p v-else-if="voiceState === 'speaking'" class="hint">AI 正在朗读，点击可停止</p>
-      <p v-else class="hint">点击麦克风开始语音回答</p>
+      <p :class="['hint', { warn: !hasRecorder || voiceState === 'error' }]">{{ voiceHint }}</p>
     </div>
 
-    <!-- Pause Overlay -->
     <div v-if="isPaused" class="pause-overlay" @click.self="resume">
       <div class="pause-card">
         <h2 class="pause-title">面试已暂停</h2>
@@ -340,7 +346,6 @@ onUnmounted(() => {
       </div>
     </div>
 
-    <!-- Quit Confirm Modal -->
     <div v-if="showQuitConfirm" class="modal-overlay" @click.self="cancelQuit">
       <div class="modal-card">
         <p class="modal-title">确认结束面试？</p>
@@ -437,6 +442,11 @@ onUnmounted(() => {
   transition: background 0.2s, transform 0.15s;
 }
 
+.voice-btn:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .voice-btn:active {
   transform: scale(0.95);
 }
@@ -452,10 +462,14 @@ onUnmounted(() => {
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.35);
 }
 
-.voice-btn.transcribing {
+.voice-btn.transcribing,
+.voice-btn.thinking {
   background: var(--muted);
-  cursor: default;
   animation: none;
+}
+
+.voice-btn.error {
+  background: #ef4444;
 }
 
 @keyframes recording-pulse {
@@ -485,7 +499,6 @@ onUnmounted(() => {
   stroke-width: 2;
 }
 
-/* Pause Overlay */
 .pause-overlay {
   position: absolute;
   inset: 0;
@@ -531,7 +544,6 @@ onUnmounted(() => {
   gap: 10px;
 }
 
-/* Modal */
 .modal-overlay {
   position: absolute;
   inset: 0;
@@ -567,21 +579,6 @@ onUnmounted(() => {
 .modal-actions {
   display: flex;
   gap: 10px;
-}
-
-.cursor {
-  display: inline-block;
-  width: 2px;
-  height: 1em;
-  background: var(--fg);
-  margin-left: 2px;
-  vertical-align: text-bottom;
-  animation: blink 0.6s step-end infinite;
-}
-
-@keyframes blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
 }
 
 .speaking-indicator {
