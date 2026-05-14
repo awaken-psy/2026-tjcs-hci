@@ -24,7 +24,11 @@ function toggleDarkMode() {
   localStorage.setItem('theme', theme)
   const screen = document.querySelector('.screen')
   if (screen) {
-    screen.setAttribute('data-theme', darkMode.value ? 'dark' : '')
+    if (darkMode.value) {
+      screen.setAttribute('data-theme', 'dark')
+    } else {
+      screen.removeAttribute('data-theme')
+    }
   }
 }
 

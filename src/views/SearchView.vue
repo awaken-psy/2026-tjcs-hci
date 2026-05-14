@@ -439,7 +439,7 @@ onMounted(() => {
 }
 
 .search-input::placeholder {
-  color: var(--border);
+  color: var(--muted);
 }
 
 .search-input:focus {
